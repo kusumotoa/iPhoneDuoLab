@@ -44,7 +44,7 @@ open iPhoneDuoLab.xcodeproj
 
 実行先に iPhone Duo シミュレータを選んでください。
 
-Xcode 27 から `Simulator.app` は **`DeviceHub.app`** に置き換わっています。折りたたみ状態は**ウィンドウ右下の 3 ボタン**（電話 = closed / 本 = partially folded / テント = fully open）で切り替えます。メニュー項目もキーボードショートカットもなく、`simctl` にも該当コマンドはありません。回転は Controls メニューから行います。
+Xcode 27 のバンドルに `Simulator.app` はなく、**`DeviceHub.app`** に置き換わっています。折りたたみ状態はデバイスウィンドウ**右下の 3 ボタン**（左から closed / partially folded / fully open、現在の姿勢が青くハイライト）で切り替えます。メニュー項目もキーボードショートカットもなく、`simctl` にも該当コマンドはありません。回転は Controls メニューから行います。
 
 内側ディスプレイにはタッチ操作が届かないため、自動操作する場合は**閉じた状態で画面を開いてから折る**必要があります。詳細は [docs/03-verification.md](docs/03-verification.md) を参照してください。
 

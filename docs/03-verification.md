@@ -58,18 +58,26 @@ grep -n "ArrangementView" \
 
 ## ポーズの切り替え方
 
-**Xcode 27 から `Simulator.app` は無くなり、`DeviceHub.app` に置き換わっています。**
+**Xcode 27 のバンドルに `Simulator.app` はありません。`DeviceHub.app` に置き換わっています。**
 
 ```
 /Applications/Xcode-27.1.0-Beta.app/Contents/Applications/DeviceHub.app
 ```
 
+ただし旧 Xcode の `Simulator.app` が同時に起動していることがあり、その場合どちらのウィンドウを操作しているのか紛らわしくなります。DeviceHub 側はデバイス一覧のウィンドウも持つため、**姿勢コントロールがあるのはデバイス画面を表示しているウィンドウのほう**である点に注意してください。
+
 | 操作 | 方法 |
 | --- | --- |
-| 折りたたみ状態 | ウィンドウ**右下の 3 ボタン**（電話 = closed / 本 = partially folded / テント = fully open）。メニュー項目もキーボードショートカットもありません |
+| 折りたたみ状態 | デバイスウィンドウの**右下 3 ボタン**（左から closed / partially folded / fully open）。**現在の姿勢が青くハイライト**されます |
 | 回転 | Controls メニューの Rotate Left / Rotate Right |
 
-`simctl` に折りたたみ系のコマンドはありません（`ui` にも `io` にも該当なし）。
+コントロールバーは 7 ボタン構成で、左から `ホーム / スクリーンショット / 録画 | 回転 | 姿勢 × 3`（姿勢の 3 つは右端、各 32×28）。**姿勢を変えるたびにウィンドウが移動・リサイズする**ため、AX で自動操作する場合は毎回座標を取り直す必要があります。
+
+**GUI のボタン以外に姿勢を変える方法はありません。** `simctl` の全サブコマンドを確認しましたが該当する手段はなく、Device メニューにも `Rotate Left/Right` と `Orientation`（Portrait / Landscape / Face Up / Face Down）しかありません。
+
+### 複数セッションで同時に触らないこと
+
+ディスプレイ UUID は姿勢が変わるたびに変わるため、**UUID が勝手に変わっていたら誰かが端末を折っています**。自動操作を複数並行させると、撮影の合間に別の操作が挟まって当てにならない画像になり、相手の作業も壊します。
 
 ### 自動操作するときの注意
 
