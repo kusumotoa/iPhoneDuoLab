@@ -9,10 +9,11 @@ Apple Tech Talks と各種解説記事を一次資料として整理し、**実�
 ```
 iPhoneDuoLab/
 ├── docs/                    調査メモ（図つき）
-│   ├── 00-overview.md       デバイスの基礎、3 状態と 6 ポーズ
-│   ├── 01-design-principles.md  デザイン原則
+│   ├── 00-overview.md       デバイスの基礎、size class、3 状態と 6 ポーズ
+│   ├── 01-design-principles.md  デザイン原則、予約領域、アクセシビリティ
 │   ├── 02-api-reference.md  SDK から抽出した API リファレンス
-│   ├── 03-verification.md   シミュレータでの実測値
+│   ├── 03-verification.md   シミュレータでの実測値と落とし穴
+│   ├── 04-camera.md         2 つの前面カメラ、direction / rotation coordinator
 │   ├── 99-checklist.md      移行チェックリスト
 │   ├── 90-sources.md        参照元
 │   └── assets/              図（SVG）

@@ -56,6 +56,33 @@ grep -n "ArrangementView" \
   "$SDK/System/Library/Frameworks/SwiftUICore.framework/Modules/SwiftUICore.swiftmodule/arm64e-apple-ios.swiftinterface"
 ```
 
+## ポーズの切り替え方
+
+**Xcode 27.1 の Device Hub** で iPhone Duo シミュレータを選び、画面下部のコントロールで開閉・回転・折り曲げを切り替えます。`simctl` には該当するサブコマンドがありません（`simctl ui` が持つのは appearance / increase_contrast / content_size のみ）。
+
 ## 6 つのポーズでの実測値
 
 （計測中 — 埋まり次第ここに表を追加します）
+
+## 記事と SDK の突き合わせ結果
+
+参照記事は、Apple Developer Documentation の索引（31,243 項目、2026-09-10 取得）と **iOS 27.0 SDK** で API を照合し、27.1 向けは 2026-09-17 時点の Beta ドキュメントで再照合した、という手順を取っています。そのため **27.1 SDK にしか無い API は記事の本文に現れにくい**構造になっています。
+
+こちらで 27.1 SDK を直接引いた結果、記事が「公式サンプルには出るがドキュメント未収載」としていた 3 つはいずれも実在しました。
+
+- `onHingeChange`
+- `toolbarVerticalBehavior(_:)`
+- `toolbarVerticalCompressionBehavior(_:)`
+
+さらに、記事の本文コード例には出てこないが SDK に実在する API として次を確認しています。
+
+- `splitArrangementLayoutRatio(_:)` / `splitArrangementLayoutRatio(minHorizontal:...)`
+- `splitArrangementLayoutSize(minWidth:...)` / `splitArrangementFixedLayoutSize(horizontal:vertical:)`
+- `overlayArrangementEdge(_:)` / `EnvironmentValues.overlayArrangementZIndex`
+- `ContentMarginGuide` / `PresentationPlacement` / `ConcentricRectangle`
+- `AVCaptureDeviceTypeBuiltInOuterUltraWideCamera` / `...InnerUltraWideCamera`（iOS 27.1）
+- `UIVerticalBarEdge`（`.unspecified` / `.leading` / `.trailing`、iOS 27.1）
+- `UINavigationItem.pinnedTrailingGroup` / `.verticalBarCompressionBehavior` / `.additionalOverflowItems`
+- `UIViewController.preferredVerticalBarBehavior`
+- `UIBarButtonItemVisibilityPriority` / `UIBarButtonItem.creatingFixedGroup()`
+- `UISheetPresentationController.preferredPlacement`

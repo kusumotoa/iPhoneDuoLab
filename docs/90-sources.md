@@ -24,7 +24,11 @@ sarunw.com のシリーズ（Apple の "Design for iPhone Duo" を解説した�
 
 日本語記事
 
-- [Zenn / d_date](https://zenn.dev/d_date/articles/d874e248ac7851) — Tech Talks 6 本 + Group Lab の内容を整理。API 一覧と移行チェックリストが充実
+- [Zenn / d_date](https://zenn.dev/d_date/articles/d874e248ac7851) — Tech Talks 6 本 + Group Lab の内容を整理。API 一覧と移行チェックリストが充実。著者は Daiki Matsudate（try! Swift Tokyo Main Organizer）
+
+**本リポジトリの docs は、この記事の全文（印刷版 PDF・110 ページ）を一次資料にしています。** Group Lab のタイムスタンプ付き引用が多数含まれており、動画の内容は実質的にこの記事でカバーされています。
+
+記事の API 検証は Apple Developer Documentation の索引（31,243 項目、2026-09-10 取得）と **iOS 27.0 SDK** で行われ、27.1 向けは 2026-09-17 時点の Beta ドキュメントで再照合されています。そのため 27.1 SDK にしか無い API は本文に現れにくく、こちらで 27.1 SDK を直接引いて補完しています（[03-verification.md](03-verification.md) 参照）。
 
 ## 動画
 

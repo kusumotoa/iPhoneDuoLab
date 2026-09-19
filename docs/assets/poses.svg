@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 700" width="1040" height="700" font-family="-apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 730" width="1040" height="730" font-family="-apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif">
   <style>
     :root { color-scheme: light dark; }
     .bg     { fill: #ffffff; }
@@ -25,7 +25,7 @@
     }
   </style>
 
-  <rect class="bg" x="0" y="0" width="1040" height="700"/>
+  <rect class="bg" x="0" y="0" width="1040" height="730"/>
   <text class="title" x="30" y="36">iPhone Duo の 6 つのポーズ</text>
   <text class="note" x="30" y="58">3 つの状態（閉じる / 完全に開く / 部分的に折る）× 2 つの向き</text>
 
@@ -109,5 +109,6 @@
     <text class="note" x="34" y="1">システムのバー</text>
     <line class="fold" x1="150" y1="-4" x2="182" y2="-4"/>
     <text class="note" x="190" y="1">折り目（ヒンジ）</text>
+    <text class="note" x="0" y="26">図では垂直バーを右辺に描いていますが、バーは常に前面カメラのある側に付きます。閉じた状態で回転させると左側に来ることもあります。</text>
   </g>
 </svg>

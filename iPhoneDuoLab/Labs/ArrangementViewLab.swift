@@ -7,6 +7,11 @@ import SwiftUI
 
 /// ArrangementView の 3 つのスタイルを切り替えて、折り目に対する挙動を比べる Lab です。
 /// 「メディアは上半分、コントロールは下半分」のような分離を、折り方に追従させるのが狙いです。
+///
+/// 入れ子には制約があります。ArrangementView はナビゲーション基盤を提供しないため、
+/// - ArrangementView の中に NavigationSplitView などのナビゲーションコンテナを置かない
+/// - List や ScrollView の中に ArrangementView を置かない
+/// この Lab では ContentView 側の NavigationStack の下に直接置いています。
 struct ArrangementViewLab: View {
     enum Style: String, CaseIterable, Identifiable {
         case automatic = "automatic"
