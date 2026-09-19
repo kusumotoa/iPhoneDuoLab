@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 450" width="1040" height="450" font-family="-apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif">
+  <style>
+    :root { color-scheme: light dark; }
+    .bg      { fill: #ffffff; }
+    .title   { fill: #1a1a1a; font-size: 19px; font-weight: 600; }
+    .head    { fill: #1a1a1a; font-size: 14px; font-weight: 600; }
+    .note    { fill: #7a828c; font-size: 11.5px; }
+    .code    { fill: #555c66; font-size: 11.5px; font-family: ui-monospace, Menlo, monospace; }
+    .body    { fill: #f2f4f7; stroke: #3d434d; stroke-width: 2; }
+    .pri     { fill: #3b7dd8; fill-opacity: 0.35; }
+    .sec     { fill: #e8853d; fill-opacity: 0.45; }
+    .plabel  { fill: #2a5fa8; font-size: 11px; font-weight: 600; }
+    .slabel  { fill: #a85f1a; font-size: 11px; font-weight: 600; }
+    .fold    { stroke: #d9534f; stroke-width: 2.5; stroke-dasharray: 7 5; }
+    @media (prefers-color-scheme: dark) {
+      .bg      { fill: #0d1117; }
+      .title   { fill: #e6edf3; }
+      .head    { fill: #e6edf3; }
+      .note    { fill: #8b949e; }
+      .code    { fill: #aeb7c2; }
+      .body    { fill: #1b2230; stroke: #b0b8c4; }
+      .pri     { fill: #6ea8fe; }
+      .sec     { fill: #f0a868; }
+      .plabel  { fill: #9ec5ff; }
+      .slabel  { fill: #f0bc6a; }
+      .fold    { stroke: #ff7b72; }
+    }
+  </style>
+
+  <rect class="bg" x="0" y="0" width="1040" height="450"/>
+  <text class="title" x="30" y="36">ArrangementView — 同じコードが折り方に追従する</text>
+  <text class="code" x="30" y="60">ArrangementView { primary } secondary: { secondary }  .arrangementViewStyle(.split)</text>
+
+  <!-- 1. split / folded landscape -->
+  <text class="head" x="60" y="104">.split — 折り目が縦のとき</text>
+  <g transform="translate(60,120)">
+    <rect class="body" x="0" y="0" width="260" height="180" rx="12"/>
+    <rect class="pri" x="8" y="8" width="118" height="164" rx="7"/>
+    <rect class="sec" x="134" y="8" width="118" height="164" rx="7"/>
+    <text class="plabel" x="67" y="95" text-anchor="middle">primary</text>
+    <text class="slabel" x="193" y="95" text-anchor="middle">secondary</text>
+    <line class="fold" x1="130" y1="0" x2="130" y2="180"/>
+  </g>
+  <text class="note" x="60" y="326">折り目の左右に分かれます。</text>
+
+  <!-- 2. split / folded portrait -->
+  <text class="head" x="380" y="104">.split — 折り目が横のとき</text>
+  <g transform="translate(380,120)">
+    <rect class="body" x="0" y="0" width="200" height="180" rx="12"/>
+    <rect class="pri" x="8" y="8" width="184" height="78" rx="7"/>
+    <rect class="sec" x="8" y="94" width="184" height="78" rx="7"/>
+    <text class="plabel" x="100" y="52" text-anchor="middle">primary</text>
+    <text class="slabel" x="100" y="138" text-anchor="middle">secondary</text>
+    <line class="fold" x1="0" y1="90" x2="200" y2="90"/>
+  </g>
+  <text class="note" x="380" y="326">「メディアは上、コントロールは下」の形。</text>
+  <text class="note" x="380" y="344">コードは変えていません。</text>
+
+  <!-- 3. overlay -->
+  <text class="head" x="700" y="104">.overlay</text>
+  <g transform="translate(700,120)">
+    <rect class="body" x="0" y="0" width="260" height="180" rx="12"/>
+    <rect class="pri" x="8" y="8" width="244" height="164" rx="7"/>
+    <text class="plabel" x="130" y="70" text-anchor="middle">primary</text>
+    <rect class="sec" x="20" y="120" width="220" height="44" rx="7"/>
+    <text class="slabel" x="130" y="147" text-anchor="middle">secondary</text>
+  </g>
+  <text class="note" x="700" y="326">secondary が primary の上に重なります。</text>
+  <text class="note" x="700" y="344">端の指定は UIKit 側で edge として持ちます。</text>
+
+  <text class="note" x="30" y="404">.split と .overlay は axes(_:) で軸を固定できます（.automatic にはありません）。</text>
+  <text class="note" x="30" y="424">ヒンジ回避はシート・アラート・メニューには最初から入っており、自前のオーバーレイでは reservedRegions を使います。</text>
+</svg>

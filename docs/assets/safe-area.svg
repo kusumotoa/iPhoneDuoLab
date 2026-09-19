@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 430" width="1040" height="430" font-family="-apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif">
+  <style>
+    :root { color-scheme: light dark; }
+    .bg      { fill: #ffffff; }
+    .title   { fill: #1a1a1a; font-size: 19px; font-weight: 600; }
+    .head    { fill: #1a1a1a; font-size: 14px; font-weight: 600; }
+    .note    { fill: #7a828c; font-size: 11.5px; }
+    .body    { fill: #f2f4f7; stroke: #3d434d; stroke-width: 2; }
+    .bar     { fill: #3b7dd8; }
+    .content { fill: #4aa96c; fill-opacity: 0.55; stroke: #4aa96c; stroke-width: 1.5; }
+    .grad    { fill: #8e7cc3; fill-opacity: 0.3; }
+    .center  { stroke: #d9534f; stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .safeln  { stroke: #4aa96c; stroke-width: 1.2; stroke-dasharray: 3 3; }
+    @media (prefers-color-scheme: dark) {
+      .bg      { fill: #0d1117; }
+      .title   { fill: #e6edf3; }
+      .head    { fill: #e6edf3; }
+      .note    { fill: #8b949e; }
+      .body    { fill: #1b2230; stroke: #b0b8c4; }
+      .bar     { fill: #6ea8fe; }
+      .content { fill: #6fd398; stroke: #6fd398; }
+      .grad    { fill: #b3a2e8; }
+      .center  { stroke: #ff7b72; }
+      .safeln  { stroke: #6fd398; }
+    }
+  </style>
+
+  <rect class="bg" x="0" y="0" width="1040" height="430"/>
+  <text class="title" x="30" y="36">非対称なセーフエリアに対する 3 つの寄せ方</text>
+  <text class="note" x="30" y="58">側面にバーが出ると、左右のインセットが揃わなくなります。赤の破線がデバイス中央、緑の破線がセーフエリアの端です。</text>
+
+  <!-- パターン 1: セーフエリア内 -->
+  <text class="head" x="60" y="104">1. セーフエリア内に収める</text>
+  <g transform="translate(60,120)">
+    <rect class="body" x="0" y="0" width="280" height="190" rx="12"/>
+    <rect class="bar" x="244" y="14" width="24" height="162" rx="6"/>
+    <rect class="content" x="26" y="30" width="204" height="130" rx="8"/>
+    <line class="safeln" x1="20" y1="0" x2="20" y2="190"/>
+    <line class="safeln" x1="238" y1="0" x2="238" y2="190"/>
+    <line class="center" x1="140" y1="0" x2="140" y2="190"/>
+  </g>
+  <text class="note" x="60" y="336">コンテンツの中心がデバイス中心から左にずれます。</text>
+  <text class="note" x="60" y="354">テキストやリストなど、読み取る内容に向いています。</text>
+
+  <!-- パターン 2: 画面全体で中央 -->
+  <text class="head" x="380" y="104">2. 画面全体で中央に置く</text>
+  <g transform="translate(380,120)">
+    <rect class="body" x="0" y="0" width="280" height="190" rx="12"/>
+    <rect class="content" x="60" y="30" width="160" height="130" rx="8"/>
+    <rect class="bar" x="244" y="14" width="24" height="162" rx="6"/>
+    <line class="center" x1="140" y1="0" x2="140" y2="190"/>
+  </g>
+  <text class="note" x="380" y="336">デバイス中心に揃うぶん、バーの下に潜ります。</text>
+  <text class="note" x="380" y="354">主役が 1 つだけの画面に向いています。</text>
+
+  <!-- パターン 3: 混合 -->
+  <text class="head" x="700" y="104">3. 混合</text>
+  <g transform="translate(700,120)">
+    <rect class="body" x="0" y="0" width="280" height="190" rx="12"/>
+    <rect class="grad" x="2" y="2" width="276" height="186" rx="11"/>
+    <rect class="content" x="26" y="30" width="204" height="130" rx="8"/>
+    <rect class="bar" x="244" y="14" width="24" height="162" rx="6"/>
+    <line class="safeln" x1="238" y1="0" x2="238" y2="190"/>
+  </g>
+  <text class="note" x="700" y="336">背景だけが画面いっぱいに広がり、</text>
+  <text class="note" x="700" y="354">コンテンツはセーフエリア内に留まります。</text>
+
+  <text class="note" x="30" y="400">実装では safeAreaInsets の 4 辺を個別に読むこと。向かい合う辺が同じ値とは限りません。</text>
+</svg>
