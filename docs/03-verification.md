@@ -58,11 +58,83 @@ grep -n "ArrangementView" \
 
 ## ポーズの切り替え方
 
-**Xcode 27.1 の Device Hub** で iPhone Duo シミュレータを選び、画面下部のコントロールで開閉・回転・折り曲げを切り替えます。`simctl` には該当するサブコマンドがありません（`simctl ui` が持つのは appearance / increase_contrast / content_size のみ）。
+**Xcode 27 から `Simulator.app` は無くなり、`DeviceHub.app` に置き換わっています。**
+
+```
+/Applications/Xcode-27.1.0-Beta.app/Contents/Applications/DeviceHub.app
+```
+
+| 操作 | 方法 |
+| --- | --- |
+| 折りたたみ状態 | ウィンドウ**右下の 3 ボタン**（電話 = closed / 本 = partially folded / テント = fully open）。メニュー項目もキーボードショートカットもありません |
+| 回転 | Controls メニューの Rotate Left / Rotate Right |
+
+`simctl` に折りたたみ系のコマンドはありません（`ui` にも `io` にも該当なし）。
+
+### 自動操作するときの注意
+
+- **内側ディスプレイにはタッチが届きません。** 開いた状態では tap も scroll も成功を返すのに何も起きません。回避策は「**閉じた状態で画面遷移とスクロール位置を作ってから折る**」です。読み取りは全ポーズで動きます
+- **折ると強制的に landscape になります。** partially folded / portrait を作るには、折ってから回転させます
+- `simctl io <udid> enumerate` のディスプレイ UUID は**折るたびに変わります**。スクリーンショットのたびに引き直してください
 
 ## 6 つのポーズでの実測値
 
-（計測中 — 埋まり次第ここに表を追加します）
+iPhone Duo シミュレータ（iOS 27.1）で `PoseInspectorLab` を開いて読んだ値です。
+
+### ディスプレイ諸元
+
+| | ピクセル | ポイント | scale |
+| --- | --- | --- | --- |
+| 外側 | 1398 × 2034 | **466 × 678** | 3x |
+| 内側 | 2007 × 2853 | **669 × 951** | 3x |
+
+### size class と画面サイズ
+
+| ポーズ | 画面 (pt) | horizontal | vertical |
+| --- | --- | --- | --- |
+| closed / portrait | 466 × 678 | compact | regular |
+| closed / landscape | 678 × 466 | compact | **compact** |
+| fully open / portrait | 669 × 951 | regular | regular |
+| fully open / landscape | 951 × 669 | regular | regular |
+| partially folded / portrait | 669 × 951 | regular | regular |
+| partially folded / landscape | 951 × 669 | regular | regular |
+
+**vertical が compact になるのは closed / landscape だけ**です。内側は向きによらず regular / regular で、記事の記述と一致しました。
+
+### safe area・content margins・バーの位置
+
+単位は pt、順に top / bottom / leading / trailing です。
+
+| ポーズ | safe area | content margins | toolbarVerticalEdge |
+| --- | --- | --- | --- |
+| closed / portrait | 82 / 34 / 0 / **84** | 0 / 0 / **20** / 0 | **trailing** |
+| closed / landscape（右回転） | 82 / 34 / **84** / 0 | 0 / 0 / 0 / **20** | **leading** |
+| fully open / portrait | 82 / 34 / 0 / 0 | 0 / 0 / 20 / 20 | **nil（水平バー）** |
+| fully open / landscape | 82 / 34 / 0 / **84** | 0 / 0 / 20 / 0 | **trailing** |
+| partially folded / portrait | 82 / 34 / 0 / 0 | 0 / 0 / 20 / 20 | **nil（水平バー）** |
+| partially folded / landscape | 82 / 34 / 0 / **84** | 0 / 0 / 20 / 0 | **trailing** |
+
+![実測した垂直バーの構造](assets/measurements.svg)
+
+### ヒンジと予約領域
+
+| ポーズ | hinge status | angle | division | occlusion |
+| --- | --- | --- | --- | --- |
+| closed / portrait | closed | 0.0° | 0 | 2 |
+| closed / landscape | closed | 0.0° | 0 | 2 |
+| fully open / portrait | fullyOpen | 180.0° | 0 | （未計測） |
+| fully open / landscape | fullyOpen | 180.0° | 0 | 1 |
+| partially folded / portrait | partiallyOpen | 127.5° | **1** | 1 |
+| partially folded / landscape | partiallyOpen | 127.5° | **1** | 1 |
+
+### 読み取れたこと
+
+- **垂直バーの幅は 84.0 pt。** safe area がバー側に 84.0、content margins が逆側に 20.0 という構造です。左右を足すと常に同じ値にならないため、「片側の値を反対側に流用しない」という指針が数値で裏付けられます
+- **内側ディスプレイの portrait では垂直バーが出ません**（`toolbarVerticalEdge` が nil、safe area の左右が 0 / 0）。記事にあった例外が実測で確認できました
+- **右に回転させるとバーは leading 側に出ます。** バーは物理的に同じ辺に留まるため、回転方向で leading / trailing が入れ替わります。`toolbarVerticalEdge` を見ずに trailing 固定で組むと破綻します
+- `division` は partially folded のときだけ 1 件。平らな状態では非アクティブなので 0 件です
+- `occlusion` は外側 2 件 / 内側 1 件
+- safe area の top は大タイトル展開時 82.0 で、スクロールして inline に縮むと 24.0 になります（`GeometryReader` を `List` の外に置いているため、タイトルの状態を拾います）
 
 ## 記事と SDK の突き合わせ結果
 
