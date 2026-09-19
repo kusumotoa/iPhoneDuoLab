@@ -17,7 +17,7 @@
 - [ ] `UIScreen.main` → `window?.windowScene?.screen` に置き換える
 - [ ] `UIScreen.main.scale` → `traitCollection.displayScale` に置き換える
 - [ ] 画面参照を environment・trait collection・**scene の bounds** に置き換える。画面情報が必要なら window scene から動的に取得する
-- [ ] 固定幅・ハードコードしたブレークポイントを消す
+- [ ] **固定幅（fixed widths）を消す** — HIG が避けよと書いているのは固定幅と特定ディスプレイへの依存であり、幅による分岐そのものではありません
 - [ ] user interface idiom からデバイスを推測している箇所を消す
 - [ ] アプリが**自由にリサイズできる**状態になっているか確認する
 

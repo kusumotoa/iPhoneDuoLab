@@ -120,52 +120,50 @@ AR など没入型の全画面アプリは通常どおり作ってステータ�
 
 - interface orientation で分岐する
 - `UIScreen.main` を参照する
-- **固定幅、ブレークポイント、特定の画面に結び付いた寸法を使う**
+- **固定幅（fixed widths）を使う**
+- **特定のディスプレイに紐づくもの（display-specific dependencies）に依存する**
 - user interface idiom からデバイスを推測する
 - 向かい合う safe area inset が等しいと仮定する
 
-### ブレークポイントがなぜ避けるべきなのか
+### HIG の原文
 
-原文はこう書いています。
+一次情報は HIG の [Designing for iPhone Duo](https://developer.apple.com/design/human-interface-guidelines/designing-for-iphone-duo) です。Best practices の項にこうあります。
 
-> 姿勢ごとに個別のレイアウトを設計する代わりに、**2 つの幅の size class を対象とし**、layout margins と水平方向の safe area insets を使って自由にリサイズできる設計にすることが推奨されています。固定幅、ブレークポイント、特定の画面に結び付いた寸法は避けるよう述べられています。
+> **Build your app to resize.** Because the device has two displays and supports a wide range of poses and Split View multitasking, your app can appear at many different sizes. Use size classes, layout margins, and safe area insets to lay out controls and content. **Avoid fixed widths and display-specific dependencies.**
 
-推奨されているのは次の形です。
+Dynamic layouts の項でも繰り返されます。
 
-1. 大枠は **size class の 2 分岐**（compact / regular）。自前で 3 段階・4 段階のしきい値を作らない
-2. グリッドなどは**しきい値を持たず、実際の幅に連続的に合わせる**
+> As with all iOS devices, build your layouts with layout margins and safe area insets, and **steer clear of fixed widths or anything tied to a specific display**.
 
-```swift
-// 推奨に近い形 — 固定のしきい値を持たない
-LazyVGrid(columns: [GridItem(.adaptive(minimum: 180))]) { ... }
-```
+避けよと書かれているのは **fixed widths** と **display-specific dependencies（特定のディスプレイに紐づくもの）** の 2 つです。
 
-### どこまでが「ブレークポイント」なのか
+### 「ブレークポイント」は HIG に出てこない
 
-原典は「ブレークポイント」という語を使っていますが、**何をそう呼ぶのかは定義していません**。具体例も挙げられていないため、「600pt 以上なら 6 列、未満なら 3 列」のような段階分けが該当するかどうかは解釈になります。
+解説記事には「固定幅、ブレークポイント、特定の画面に結び付いた寸法は避ける」という記述がありますが、**HIG に breakpoint という語は一度も登場しません**。解説側で足された語です。
 
-判断材料は両方あります。
+したがって「600pt 以上なら 6 列、未満なら 3 列」のような幅による分岐は、**HIG が禁じているものではありません**。HIG が問題にしているのは、レイアウトに固定幅を持つことと、特定のディスプレイの寸法に依存することです。
 
-- **該当しそう** — 3 つが並列で書かれているので、ブレークポイントは単独で避けるべき対象として読める
-- **該当しなさそう** — Group Lab では App Store アプリと Health アプリが「横向きで 2 列、縦向きで 1 列に切り替えている例」として**良い例の側**で挙げられている。あらゆる段階分けが禁止されているわけではない
+確認すべきは次の 2 点です。
 
-両立させると、一貫して読み取れる意図は「**画面に紐付いた寸法を起点にするな**」の 1 点です。3 つ目の「特定の画面に結び付いた寸法」が前 2 つの性質を説明している、と読むのが自然でしょう。
-
-つまり実務上の判断基準は、**その数値がどこから来たか**です。
-
-| 出どころ | 評価 |
+| 見るところ | 判断 |
 | --- | --- |
-| 「iPad の幅が 768 だから手前で切る」— デバイス寸法から逆算 | 原典が問題視している形 |
-| 「セルが最低 180pt 必要で、6 列なら余白込みで 600pt」— コンテンツから算出 | `.adaptive(minimum:)` と実質同じ。数値を自分で持つか導かせるかの違い |
+| その幅をどこから読んでいるか | `UIScreen` 系ならアウト。与えられたコンテナの幅なら問題なし |
+| レイアウト自体に固定幅を持っていないか | カラム幅を決め打ちしていればアウト |
 
-いずれにせよ iPhone Duo では 6 つの姿勢に加えて Split View と複数インスタンスがあり、取りうる幅が連続的に変わります。垂直バーが 84pt を占めるぶん画面幅と実際に使える幅も常にずれるため、**幅をどこから読むか**のほうが実害に直結します。
+垂直バーが 84pt を占めるぶん、画面幅と実際に使える幅は常にずれます。**幅をどこから読むか**が実害に直結します。
 
-### 「幅で判断する」との関係
+### グリッドは偶数列を選ぶ
 
-Group Lab には「向きではなく利用できる幅で判断する」という推奨も出てきますが、これは **interface orientation を使うなという文脈**であって、自前のブレークポイントを認めるものではありません。同じ段落が続けてこう書いています。
+HIG には別の指針として次が書かれています。
 
-> 分割ビューのようなコンテナ側のコンポーネントに幅の判断を任せ、**グリッドなどは実際の幅に合わせる**ことが勧められています。
+> **In a grid-style layout, prefer an even number of columns so content divides cleanly.**
 
-App Store アプリや Health アプリが横向き 2 列・縦向き 1 列に切り替える例が挙げられています。
+折り目で左右に分かれたときにきれいに割れるためです。6 列は条件を満たしますが、**3 列は奇数なので外れます**（`prefer` なので強制ではありません）。
 
-なお別の指針として、**グリッドの列数は偶数に保つ**ことが勧められています（折り目で左右に分かれたときにきれいに割れるため）。
+### 折りへの追従のほうが重要
+
+> **Adapt your layout when the device folds.** Prefer a layout container that adapts automatically, like the split view in Notes that adjusts the width of each pane to stay clearly visible as the device folds.
+
+> **Avoid extreme layout changes as people fold the device.** Move only what's necessary to keep elements visible and easy to tap. Controls that disappear or shift dramatically are harder to find and track, so favor small adjustments over rearrangement.
+
+列数のしきい値より、折ったときに自動で適応するコンテナを選ぶことと、変化を最小限にすることのほうが重視されています。

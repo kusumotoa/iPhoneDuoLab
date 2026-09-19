@@ -1,5 +1,17 @@
 # 参照元
 
+## 優先順位
+
+**公式ドキュメント（HIG / Apple Developer Documentation）を正とします。** 解説記事は理解の助けとして使いますが、記述が食い違う場合は必ず公式を優先し、docs には公式の原文を引用します。
+
+実際に食い違いが見つかっています。解説記事の「固定幅、**ブレークポイント**、特定の画面に結び付いた寸法は避ける」という記述に対し、HIG に breakpoint という語は一度も登場しません（HIG は "Avoid fixed widths and display-specific dependencies"）。解説側で足された語でした。
+
+## Apple 公式（一次情報）
+
+- [Designing for iPhone Duo](https://developer.apple.com/design/human-interface-guidelines/designing-for-iphone-duo) — HIG。2026-09-09 公開。Anatomy / Device poses / Best practices / Dynamic layouts / Reserved regions / Split views / Arrangement views / Vertical controls
+- Preparing your app for iPhone Duo — 開発者向けガイダンス
+- iOS 27.1 SDK 本体（`.swiftinterface` とヘッダ）— API の実在と availability はここで確認
+
 ## Apple Tech Talks（推奨視聴順）
 
 | # | セッション | 尺 | 内容 |
