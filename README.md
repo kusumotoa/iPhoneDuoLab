@@ -14,12 +14,15 @@ iPhoneDuoLab/
 │   ├── 02-api-reference.md  SDK から抽出した API リファレンス
 │   ├── 03-verification.md   シミュレータでの実測値と落とし穴
 │   ├── 04-camera.md         2 つの前面カメラ、direction / rotation coordinator
+│   ├── 05-before-after.md   対応する / しないの比較スクリーンショット
 │   ├── 99-checklist.md      移行チェックリスト
 │   ├── 90-sources.md        参照元
 │   └── assets/              図（SVG）
 ├── iPhoneDuoLab/            検証用アプリ
 │   └── Labs/                トピックごとの実験画面
-└── iPhoneDuoLab.xcodeproj
+├── iPhoneDuoLab.xcodeproj
+└── tools/
+    └── DuoCompare/          SDK 別ビルドの比較用アプリ（swiftc 直ビルド）
 ```
 
 ## 環境
