@@ -66,14 +66,56 @@ grep -n "ArrangementView" \
 
 ただし旧 Xcode の `Simulator.app` が同時に起動していることがあり、その場合どちらのウィンドウを操作しているのか紛らわしくなります。DeviceHub 側はデバイス一覧のウィンドウも持つため、**姿勢コントロールがあるのはデバイス画面を表示しているウィンドウのほう**である点に注意してください。
 
-| 操作 | 方法 |
+### 姿勢は「ヒンジ角度のスライダー」で変える
+
+デバイスウィンドウ**下部バーの右端にあるスライダー**が姿勢コントロールです。値域は **0〜180 度**で、そのまま `DeviceHinge.angle` に対応します。
+
+| 値 | 姿勢 |
 | --- | --- |
-| 折りたたみ状態 | デバイスウィンドウの**右下 3 ボタン**（左から closed / partially folded / fully open）。**現在の姿勢が青くハイライト**されます |
-| 回転 | Controls メニューの Rotate Left / Rotate Right |
+| 0 | closed |
+| 中間（実測 127.5 付近） | partially folded |
+| 180 | fully open |
 
-コントロールバーは 7 ボタン構成で、左から `ホーム / スクリーンショット / 録画 | 回転 | 姿勢 × 3`（姿勢の 3 つは右端、各 32×28）。**姿勢を変えるたびにウィンドウが移動・リサイズする**ため、AX で自動操作する場合は毎回座標を取り直す必要があります。
+ボタンではなく連続値のスライダーなので、**折り具合を任意の角度に設定できます**。下部バーの他の 4 ボタンは左から App Switcher / スクリーンショット / 録画 / Enter Resize Mode で、姿勢とは関係ありません。
 
-**GUI のボタン以外に姿勢を変える方法はありません。** `simctl` の全サブコマンドを確認しましたが該当する手段はなく、Device メニューにも `Rotate Left/Right` と `Orientation`（Portrait / Landscape / Face Up / Face Down）しかありません。
+**メニューに姿勢を変える項目はありません。** Controls メニューにあるのは Home / Lock / Siri / App Switcher / Action Button / Screenshot / Record Screen だけで、回転の項目すらありません。`simctl` にも該当する手段はありません。
+
+### 自動操作するときの手順
+
+**AX で `AXValue` を設定しても効きません。** 値は書き換わったように見えますが、シミュレータには反映されませんでした。実際のマウスドラッグが必要です。
+
+```swift
+// CGEvent で実際にドラッグする（tools/ に drag.swift として置いてあります）
+post(.leftMouseDown, from); /* 補間しながら */ post(.leftMouseDragged, p); post(.leftMouseUp, to)
+```
+
+スライダーの座標は AX から取れます。
+
+```applescript
+tell application "System Events" to tell process "DeviceHub"
+  repeat with e in (entire contents of window 1)
+    if (role of e) is "AXSlider" then
+      if (value of attribute "AXMaxValue" of e) = 180.0 then
+        -- position と size からトラックの両端を計算する
+      end if
+    end if
+  end repeat
+end tell
+```
+
+### スクリーンショットを撮らなくても値が読める
+
+DeviceHub の AX ツリーには、**シミュレータ内で動いているアプリの要素がそのまま現れます**。`AXStaticText` の description にアプリが表示しているテキストが入るため、画像を読まずに実測値を取れます。
+
+```
+AXStaticText desc=867 × 553
+AXStaticText desc=regular / regular
+AXStaticText desc=T 82  B 34
+AXStaticText desc=L 0  Tr 84
+AXButton desc=共有 / お気に入り / 前へ / 次へ
+```
+
+数値を読み違える心配がないので、計測にはこちらのほうが確実です。
 
 ### 複数セッションで同時に触らないこと
 

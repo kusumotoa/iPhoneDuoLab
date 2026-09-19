@@ -4,6 +4,32 @@
 
 比較用アプリは `NavigationStack` + ツールバー + 画面全体を塗るグラデーションという最小構成です。背景を端まで塗っているので、黒帯が残っているかが一目で分かります。
 
+3 つの姿勢で撮っています。**差がいちばん大きいのは折った状態**です。
+
+## 外側ディスプレイ（closed / portrait）
+
+| 対応しない（iOS 26 SDK） | 対応する（iOS 27.1 SDK） |
+| --- | --- |
+| <img src="assets/shots/closed-26.png" width="200"> | <img src="assets/shots/closed-271.png" width="200"> |
+| **375 × 517 pt** | **382 × 562 pt** |
+| safe area T 64 / B 86 / L 0 / **Tr 0** | safe area T 82 / B 34 / L 0 / **Tr 84** |
+| ツールバーが**上部に水平配置** | ツールバーが**右辺に垂直配置** |
+| 右側に黒帯。ステータスバーはその黒帯の中 | 全画面。ステータスバーも右辺に縦並び |
+
+閉じた状態では差が構造的に出ます。左は `Tr 0` なので**垂直バーが存在せず**、ツールバーは従来どおり画面上部に横並びです。その結果、右側が丸ごと黒帯になります。右は `Tr 84` で、共有・星のボタンが右辺に縦に並び、時刻と Wi-Fi もそこに入ります。
+
+## 内側ディスプレイ（partially folded / landscape）
+
+| 対応しない（iOS 26 SDK） | 対応する（iOS 27.1 SDK） |
+| --- | --- |
+| <img src="assets/shots/folded-26.png" width="200"> | <img src="assets/shots/folded-271.png" width="200"> |
+| **375 × 521 pt** | **867 × 553 pt** |
+| compact / regular | **regular / regular** |
+| safe area T 64 / B 82 / L 0 / Tr 0 | safe area T 82 / B 34 / L 0 / **Tr 84** |
+| 中央に縦長の窓、左右に巨大な黒帯 | 全画面 |
+
+折った状態がいちばん差が開きます。内側ディスプレイは横向きで 951 × 669 pt ありますが、左は 375 × 521 pt しか使えていません。**面積比でおよそ 3 分の 1 以下**です。
+
 ## 内側ディスプレイ（fully open / portrait）
 
 | 対応しない（iOS 26 SDK） | 対応する（iOS 27.1 SDK） |
