@@ -15,6 +15,7 @@ iPhoneDuoLab/
 │   ├── 03-verification.md   シミュレータでの実測値と落とし穴
 │   ├── 04-camera.md         2 つの前面カメラ、direction / rotation coordinator
 │   ├── 05-before-after.md   対応する / しないの比較スクリーンショット
+│   ├── 06-existing-app-migration.md  既存 UIKit アプリで踏んだ不具合と確認ポイント
 │   ├── 99-checklist.md      移行チェックリスト
 │   ├── 90-sources.md        参照元
 │   └── assets/              図（SVG）
