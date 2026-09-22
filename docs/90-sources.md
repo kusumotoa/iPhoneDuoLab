@@ -34,6 +34,10 @@ sarunw.com のシリーズ（Apple の "Design for iPhone Duo" を解説した�
 - [Adapting content for iPhone Duo](https://sarunw.com/posts/adapting-content-for-iphone-duo/) — コンテンツ配置と ArrangementView
 - [Sheets and fold avoidance on iPhone Duo](https://sarunw.com/posts/sheets-and-fold-avoidance-on-iphone-duo/) — シートとヒンジ回避
 
+nilcoalescing.com
+
+- [Configuring SwiftUI toolbars on iPhone Duo](https://nilcoalescing.com/blog/ConfiguringSwiftUIToolbarsOnIPhoneDuo/) — SwiftUI 専用。`axisBehavior(_:)` / `toolbarVerticalEdge` / `toolbarVerticalCompressionBehavior(_:)` / `toolbarVerticalBehavior(_:)` の 4 修飾子を解説。UIKit の言及はない。本リポジトリのアプリ(UIKit)には直接のコード対応はないが、「標準コンテナは自動対応、カスタムビュー/テキストのみの項目は垂直化されない」「タブバーとツールバー項目でバー領域を取り合う際の優先度」「シートなど限定的な文脈では垂直バーを無効化して水平に戻す」という設計判断は [06-existing-app-migration.md](06-existing-app-migration.md) の該当箇所と符合する
+
 日本語記事
 
 - [Zenn / d_date](https://zenn.dev/d_date/articles/d874e248ac7851) — Tech Talks 6 本 + Group Lab の内容を整理。API 一覧と移行チェックリストが充実。著者は Daiki Matsudate（try! Swift Tokyo Main Organizer）
