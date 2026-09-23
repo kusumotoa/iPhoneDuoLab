@@ -22,9 +22,38 @@ iPhoneDuoLab/
 ├── iPhoneDuoLab/            検証用アプリ
 │   └── Labs/                トピックごとの実験画面
 ├── iPhoneDuoLab.xcodeproj
+├── skills/
+│   └── iphone-duo-lab/      docs を AI 向けにまとめた Claude Code スキル
 └── tools/
     └── DuoCompare/          SDK 別ビルドの比較用アプリ（swiftc 直ビルド）
 ```
+
+## AI から使う（Claude Code スキル）
+
+`skills/iphone-duo-lab/` は、このリポジトリの調査結果を Claude Code が参照できるようにしたスキルです。SDK で確認した API、6 姿勢の実測値、Device Hub の自動操作、既存アプリの移行で踏んだ不具合を持っています。
+
+```
+skills/iphone-duo-lab/
+├── SKILL.md                 概要、守ること、参照の選び方
+├── references/              api / design / measurements / simulator / migration / camera / checklist
+└── scripts/
+    ├── check_api.sh         27.1 SDK に API が実在するか調べる
+    ├── typecheck.sh         27.1 シミュレータ SDK で型チェックする（SourceKit の誤検知の切り分け）
+    ├── hinge.sh             Device Hub のヒンジ角度を指定値へドラッグする
+    └── read_screen.sh       Device Hub の AX からアプリの表示文字列を読む
+```
+
+リポジトリを置いたまま、シンボリックリンクでインストールできます。
+
+```sh
+# すべてのプロジェクトで使う
+ln -s "$PWD/skills/iphone-duo-lab" ~/.claude/skills/iphone-duo-lab
+
+# 特定のアプリのリポジトリだけで使う
+ln -s "$PWD/skills/iphone-duo-lab" /path/to/app/.claude/skills/iphone-duo-lab
+```
+
+docs を更新したら、対応する `references/` も合わせて更新してください（スキルは docs を AI 向けに凝縮したもので、自動では同期しません）。
 
 ## 環境
 
