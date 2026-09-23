@@ -13,9 +13,22 @@ iPhone Duo は 2026-10-23 発売、iOS 27.1 搭載。内側と外側の 2 画面
 
 **情報源の優先順位は、公式ドキュメント → SDK 本体 → 実測 → 解説記事。** 解説記事（Zenn 記事、sarunw、d-date/iphone-duo-skill など）は理解の助けにはなりますが、実際に食い違いがありました。たとえば解説記事の「固定幅・**ブレークポイント**を避ける」は HIG の原文にない語で、HIG は "Avoid fixed widths and display-specific dependencies" としか書いていません。この語を根拠にすると「幅で分岐すること自体がダメ」という誤った規則ができてしまいます。
 
-**API のシグネチャを推測で書かない。** iPhone Duo の API はベータで、ドキュメント未収載のものもあります。`references/api.md` にないものは SDK で確かめてから書いてください（`scripts/check_api.sh`）。分からないと言うほうが、もっともらしい誤った綴りを書くよりましです。
+**API のシグネチャを推測で書かない。** iPhone Duo の API はベータで、ドキュメント未収載のものもあります。`references/api.md` にないものは SDK で確かめてから書いてください。分からないと言うほうが、もっともらしい誤った綴りを書くよりましです。
 
-**エディタの赤線で API の存在を判断しない。** Xcode 27.1 Beta の SourceKit は `DeviceHinge`、`reservedRegions`、`toolbarVerticalBehavior` などを「見つからない」と誤って表示します。`swiftc -typecheck` や `xcodebuild` では通ります（`scripts/typecheck.sh`）。
+```sh
+FW=/Applications/Xcode-27.1.0-Beta.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks
+# SwiftUI の Duo 系 API は SwiftUICore と SwiftUI の両方を見る
+grep -n "reservedRegions" $FW/SwiftUICore.framework/Modules/SwiftUICore.swiftmodule/arm64e-apple-ios.swiftinterface \
+                          $FW/SwiftUI.framework/Modules/SwiftUI.swiftmodule/arm64e-apple-ios.swiftinterface
+grep -rn "UIBackgroundExtensionView" $FW/UIKit.framework/Headers
+```
+
+**エディタの赤線で API の存在を判断しない。** Xcode 27.1 Beta の SourceKit は `DeviceHinge`、`reservedRegions`、`toolbarVerticalBehavior` などを「見つからない」と誤って表示します。`swiftc -typecheck` や `xcodebuild` では通ります。
+
+```sh
+SIM=/Applications/Xcode-27.1.0-Beta.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk
+swiftc -typecheck -parse-as-library -sdk "$SIM" -target arm64-apple-ios27.1-simulator File.swift
+```
 
 **Apple の HIG / Developer Documentation は JS で描画されるため、WebFetch では本文が取れません。** ブラウザ操作ツール（claude-in-chrome の `get_page_text` など）で開いてください。開発者向けガイドの URL は `https://developer.apple.com/documentation/technologyoverviews/preparing-your-app-for-iphone-duo` です（UIKit 配下ではありません）。
 
@@ -30,17 +43,6 @@ iPhone Duo は 2026-10-23 発売、iOS 27.1 搭載。内側と外側の 2 画面
 | `references/migration.md` | 既存 UIKit アプリで踏んだ不具合（症状→原因の表）、探すための grep、レビュー観点 | 既存アプリを移行する・移行コードをレビューするとき |
 | `references/camera.md` | 2 つの前面カメラ、direction / rotation coordinator、ミラーリング | カメラを扱うとき |
 | `references/checklist.md` | 移行チェックリスト | 抜け漏れを確認するとき |
-
-## 同梱スクリプト
-
-| スクリプト | 用途 |
-| --- | --- |
-| `scripts/check_api.sh <シンボル>...` | 27.1 SDK の SwiftUI / SwiftUICore / UIKit / AVFoundation / AVKit にそのシンボルがあるか調べる |
-| `scripts/typecheck.sh <file.swift>` | iOS 27.1 シミュレータ SDK で型チェックする（SourceKit の誤検知と切り分ける） |
-| `scripts/hinge.sh <角度>` | Device Hub のヒンジ角度スライダーを 0〜180 度の値へドラッグする（0 = closed、180 = fully open） |
-| `scripts/read_screen.sh` | Device Hub の AX ツリーから、シミュレータ内アプリが表示している文字列を読む |
-
-`hinge.sh` はマウスを実際に動かします。**シミュレータを他の作業で使っていないか確認してから**実行してください。複数のセッションが同じシミュレータを操作すると、互いの結果を壊します。
 
 ## 全体に効く原則
 

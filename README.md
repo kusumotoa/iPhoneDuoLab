@@ -35,25 +35,17 @@ iPhoneDuoLab/
 ```
 skills/iphone-duo-lab/
 ├── SKILL.md                 概要、守ること、参照の選び方
-├── references/              api / design / measurements / simulator / migration / camera / checklist
-└── scripts/
-    ├── check_api.sh         27.1 SDK に API が実在するか調べる
-    ├── typecheck.sh         27.1 シミュレータ SDK で型チェックする（SourceKit の誤検知の切り分け）
-    ├── hinge.sh             Device Hub のヒンジ角度を指定値へドラッグする
-    └── read_screen.sh       Device Hub の AX からアプリの表示文字列を読む
+└── references/
+    ├── api.md               SDK で確認した API のシグネチャと SwiftUI / UIKit 対応表
+    ├── design.md            size class・safe area・垂直バー・reserved regions の考え方（HIG 原文つき）
+    ├── measurements.md      6 姿勢の実測値、対応する / しないの差
+    ├── simulator.md         Device Hub の操作と自動操作の制約
+    ├── migration.md         既存 UIKit アプリで踏んだ不具合、探し方、レビュー観点
+    ├── camera.md            2 つの前面カメラと coordinator
+    └── checklist.md         移行チェックリスト
 ```
 
-リポジトリを置いたまま、シンボリックリンクでインストールできます。
-
-```sh
-# すべてのプロジェクトで使う
-ln -s "$PWD/skills/iphone-duo-lab" ~/.claude/skills/iphone-duo-lab
-
-# 特定のアプリのリポジトリだけで使う
-ln -s "$PWD/skills/iphone-duo-lab" /path/to/app/.claude/skills/iphone-duo-lab
-```
-
-docs を更新したら、対応する `references/` も合わせて更新してください（スキルは docs を AI 向けに凝縮したもので、自動では同期しません）。
+使うときは `skills/iphone-duo-lab/` をエージェントの skills ディレクトリへコピーしてください。docs を更新したら、対応する `references/` も合わせて更新してください（スキルは docs を AI 向けに凝縮したもので、自動では同期しません）。
 
 ## 環境
 

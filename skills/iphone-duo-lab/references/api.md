@@ -1,6 +1,6 @@
 # API リファレンス（iOS 27.1 SDK で確認済み）
 
-ここに書いたシグネチャと availability は、`iPhoneOS27.1.sdk`（Xcode 27.1 Beta）の `.swiftinterface` とヘッダを直接引いて確かめたものです。ここにない API を書くときは `scripts/check_api.sh` で先に確かめてください。
+ここに書いたシグネチャと availability は、`iPhoneOS27.1.sdk`（Xcode 27.1 Beta）の `.swiftinterface` とヘッダを直接引いて確かめたものです。ここにない API を書くときは、SDK の swiftinterface / ヘッダを grep して先に確かめてください（手順は `SKILL.md`）。
 
 SwiftUI の Duo 系 API は **`SwiftUICore`** モジュールと **`SwiftUI`** モジュールに分かれて定義されています。利用側は `import SwiftUI` だけで足りますが、SDK を grep するときは両方を見ます。swiftinterface 上の `@available(anyAppleOS 27.1, *)` は、コードでは `@available(iOS 27.1, *)` と書きます。
 

@@ -26,7 +26,7 @@ Xcode 27.1 Beta の iPhone Duo シミュレータ（iOS 27.1）で実際に操�
 
 ### 自動で操作する
 
-**AX でスライダーの `AXValue` を書き換えても効かない。** 値は変わったように見えるがシミュレータに反映されない。CGEvent で実際にドラッグする必要がある（`scripts/hinge.sh <角度>`）。
+**AX でスライダーの `AXValue` を書き換えても効かない。** 値は変わったように見えるがシミュレータに反映されない。CGEvent（`leftMouseDown` → 補間しながら `leftMouseDragged` → `leftMouseUp`）で実際にドラッグする必要がある。
 
 - スライダーは DeviceHub の AX ツリーで `AXMaxValue` が 180 の `AXSlider` として見つかる
 - つまみ（`AXValueIndicator`）の幅があるため、トラックの有効範囲は「スライダーの左端 + つまみ幅の半分」から「右端 − つまみ幅の半分」
@@ -34,7 +34,7 @@ Xcode 27.1 Beta の iPhone Duo シミュレータ（iOS 27.1）で実際に操�
 
 ## 値を読む
 
-**DeviceHub の AX ツリーには、シミュレータ内で動いているアプリの要素がそのまま現れる。** `AXStaticText` の description にアプリの表示文字列が入るので、スクリーンショットを読まずに値を取れる（`scripts/read_screen.sh`）。数値の読み違いが起きないので、計測にはこちらが確実です。
+**DeviceHub の AX ツリーには、シミュレータ内で動いているアプリの要素がそのまま現れる。** `AXStaticText` の description にアプリの表示文字列が入るので、スクリーンショットを読まずに値を取れる（System Events で `process "DeviceHub"` のウインドウの `entire contents` を走査する）。数値の読み違いが起きないので、計測にはこちらが確実です。
 
 ```
 AXStaticText desc=867 × 553
@@ -64,7 +64,7 @@ xcrun simctl io <udid> screenshot --display <UUID> out.png
 
 ## ビルドと型チェック
 
-- **SourceKit の誤検知**: `Cannot find type 'DeviceHinge'`、`GeometryProxy has no member 'reservedRegions'`、`has no member 'toolbarVerticalBehavior'` などはすべて誤り。`swiftc -typecheck`（`scripts/typecheck.sh`）や `xcodebuild` では通る
+- **SourceKit の誤検知**: `Cannot find type 'DeviceHinge'`、`GeometryProxy has no member 'reservedRegions'`、`has no member 'toolbarVerticalBehavior'` などはすべて誤り。`swiftc -typecheck`（コマンドは `SKILL.md`）や `xcodebuild` では通る
 - マルチプラットフォームのテンプレートから作ったプロジェクトは `SUPPORTED_PLATFORMS` に macOS / visionOS が残り、SourceKit が macOS として評価して誤検知が増える。iOS 専用に絞る
 - Xcode 27 が作るプロジェクト（`objectVersion = 110`）は Xcode 26 で開けない。古い SDK と比べたいときは `swiftc` で直接ビルドし、`.app` と `Info.plist`（`UILaunchScreen` を含める）を手で組み立てる。ビルドされた SDK は `vtool -show-build` で確認できる
 
