@@ -2,6 +2,25 @@
 
 Xcode 27.1 Beta の iPhone Duo シミュレータ（iOS 27.1）で実際に操作して分かったことです。
 
+## 開発環境
+
+| 項目 | 内容 |
+| --- | --- |
+| Xcode 27.1 | 2026 年 9 月中に提供。Duo 対応 SDK と、姿勢と向きを扱える Device Hub を含む |
+| Xcode 27.2 | 27.2 の OS とともにベータ提供中 |
+| デザインリソース | Apple Design Resources に iOS / iPadOS 27 の UI Kit（Figma・Sketch）と iPhone Duo のベゼル（Photoshop・PNG） |
+| App Resizability スキル | Xcode 27.1 のアプリ近代化スキルが改称されたもの。SwiftUI と iPhone Duo に対応 |
+
+ビルドする SDK による違い:
+
+| ビルド SDK | 挙動 |
+| --- | --- |
+| iOS 26 以前（Xcode 26） | レターボックス表示。外側は iPhone mini に近い比率で垂直バー側に黒帯、内側は同じ比率で中央に表示され、姿勢の変化に反応しない |
+| iOS 27 | リサイズ対応が有効になる（オプトアウト不可）。内側のほぼ全体を使うが、ステータスバー下の側面に黒帯が残る |
+| iOS 27.1 | 画面端まで広がり、標準のバーが縦に配置される |
+
+発売日にはリサイズ対応とベストプラクティスに沿った状態を出し、その後に改善する進め方が Apple から勧められています。
+
 ## Device Hub
 
 - **Xcode 27 のバンドルに `Simulator.app` はなく、`DeviceHub.app` に置き換わっている**（`/Applications/Xcode-27.1.0-Beta.app/Contents/Applications/DeviceHub.app`）

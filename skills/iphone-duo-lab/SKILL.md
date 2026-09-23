@@ -37,9 +37,9 @@ swiftc -typecheck -parse-as-library -sdk "$SIM" -target arm64-apple-ios27.1-simu
 | 参照 | 内容 | 読むとき |
 | --- | --- | --- |
 | `references/api.md` | SDK で実在を確認した API のシグネチャ、availability、SwiftUI / UIKit 対応表 | コードを書く・レビューするとき |
-| `references/design.md` | size class、safe area、垂直バー、reserved regions、arrangement、シートの考え方と HIG の原文 | レイアウト方針を決めるとき |
+| `references/design.md` | size class、safe area、垂直バー、シート、reserved regions、姿勢の作り込み、複数ディスプレイとシーン、scene accessory の設計（HIG の原文つき） | レイアウトや画面構成の方針を決めるとき |
 | `references/measurements.md` | 6 姿勢の実測値、対応する / しないの差（26 SDK と 27.1 SDK の比較） | 数値で説明・判断するとき |
-| `references/simulator.md` | Device Hub の操作、ヒンジ角度の変え方、AX で値を読む方法、自動操作の制約 | シミュレータで確かめるとき |
+| `references/simulator.md` | 開発環境と SDK ごとの挙動、Device Hub の操作、ヒンジ角度の変え方、AX で値を読む方法、自動操作の制約 | ビルド環境を決める・シミュレータで確かめるとき |
 | `references/migration.md` | 既存 UIKit アプリで踏んだ不具合（症状→原因の表）、探すための grep、レビュー観点 | 既存アプリを移行する・移行コードをレビューするとき |
 | `references/camera.md` | 2 つの前面カメラ、direction / rotation coordinator、ミラーリング | カメラを扱うとき |
 | `references/checklist.md` | 移行チェックリスト | 抜け漏れを確認するとき |
