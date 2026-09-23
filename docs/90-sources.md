@@ -57,7 +57,15 @@ nilcoalescing.com
 
 ## 関連ツール
 
-- [d-date/iphone-duo-skill](https://github.com/d-date/iphone-duo-skill) — Claude Code 用 Skill
+- [d-date/iphone-duo-skill](https://github.com/d-date/iphone-duo-skill) — Claude Code 用 Skill。Zenn 記事と同じ著者で、**2 回目の Group Lab（2026-09-17）と公式ドキュメント公開分を反映済み**（確認時点のコミット `eb692c2`、2026-09-18）。`SKILL.md` と `references/`（layout / bars / scenes / camera / checklist）の構成
+
+スキルから取り込んだ内容のうち、API は 27.1 SDK で実在を確認してから載せています。確認の過程で、スキルとの食い違いが 3 点見つかりました。
+
+| 項目 | スキルの記述 | 確認結果 |
+| --- | --- | --- |
+| 避けるべきもの | 「固定幅、**ブレークポイント**、特定の画面に結び付いた寸法」 | HIG に breakpoint という語はない（"Avoid fixed widths and display-specific dependencies"） |
+| `PresentationPlacement` | `.automatic` / leading / trailing | SDK には **`.center` もある**（4 つ） |
+| バーの領域を問い合わせる API | 「名前は示されておらず特定できていない。推測で書かないこと」 | 27.1 SDK に **`UIView.LayoutRegion.bar(onEdge:extent:)`** が実在する |
 
 ## 注記
 

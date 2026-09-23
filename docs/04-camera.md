@@ -109,7 +109,7 @@ device.setDynamicAspectRatio(...) { /* 適用完了 */ }
 device.unlockForConfiguration()
 ```
 
-対応の有無は `activeFormat` の supported 系で確認します。
+指定できるのは `activeFormat.supportedDynamicAspectRatios` にある値だけです。
 
 ## Rotation Coordinator
 
@@ -145,6 +145,39 @@ photoOutput.isCameraSensorOrientationCompensationSupported
 
 **この補正は iPhone Duo の全前面カメラで有効になっています。** rotation coordinator を採用してから無効にしてください（iOS 26.0 からある API で、27.x の新 API ではありません）。
 
+## Virtual Front Camera の探し方
+
+```swift
+let session = AVCaptureDevice.DiscoverySession(
+    deviceTypes: [.builtInWideAngleCamera, .builtInUltraWideCamera],
+    mediaType: .video,
+    position: .front
+)
+```
+
+## 同じカメラでもビューごとに向きが変わる
+
+両ディスプレイを同時に使う場合、同じ背面カメラが**外側ディスプレイ側のビューからは forward-facing、内側ディスプレイ側のビューからは backward-facing** として報告されます。direction coordinator がそれぞれのビューを基準に報告するためで、ビューごとに coordinator を作る理由はここにあります。
+
+## セッションの再構成
+
+- `beginConfiguration()` / `commitConfiguration()` の中で入力を入れ替え、`canAddInput` が通らなければ**元の入力に戻す**
+- 切り替え中は古いカメラの映像が出るので、ハンドラーが呼ばれたらプレビューを隠し、新しいカメラの映像が届いたら戻す
+
+## 疑似的な自動回転をやめる
+
+縦向きに固定して UI 部品だけを個別に回す実装をしている場合は、rotation coordinator（撮影画面をどれだけ回すか）と direction coordinator（使っているカメラがどちらを向いているか）の 2 つに置き換えます。前面カメラが 2 つあるため「前面カメラは利用者の方を向いている」という前提は成り立ちません。自前で位置関係を計算しないでください。
+
+## ビデオ通話アプリ
+
+内側の前面カメラは端末の右寄りという独特な位置にあります。利用者の視線がそこへ向くよう、**UI の重心をカメラのある側へ寄せます**（FaceTime はそうしています）。
+
+自分の映像を映す小さなビューは内側カメラの領域に重ねないでください。内側カメラの occlusion はカメラが作動している間だけ現れるので、出し入れに追従する必要があります。領域は `reservedRegions(kind: .occlusion)` で取ります。
+
+## シミュレータでの確認範囲
+
+iOS 27.1 のシミュレータではカメラを使うアプリを起動できます。映像は映らず「利用できるカメラがない」と判定されますが、それ以外の UI は確認できます。**カメラに依存する部分は必ず実機で確認してください。**（解説資料由来）
+
 ## チェックリスト
 
 - [ ] Virtual Front Camera ではなく**内側・外側の物理カメラを指定**する（撮影が主目的の場合）
@@ -159,6 +192,8 @@ photoOutput.isCameraSensorOrientationCompensationSupported
 - [ ] 監視の前に現在の角度を適用する
 - [ ] 両ディスプレイ同時使用時は direction coordinator を**ビューごとに作成**する
 - [ ] カメラアプリは**実機**でプレビューを確認する
+- [ ] 疑似的な自動回転（縦向き固定 + UI 部品の個別回転）をやめ、rotation / direction coordinator に置き換える
+- [ ] ビデオ通話アプリは、自分の映像のビューが内側カメラの occlusion を避けるようにする
 
 ## 参考資料
 

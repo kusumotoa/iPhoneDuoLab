@@ -395,7 +395,11 @@ extension SceneAccessoryContent {
 
 利用可否は**システムが動的に管理**します。既定は有効ですが随時切り替わるため、`onAvailabilityChange` に加えて observation tracking で追従することが案内されています。
 
-`CameraCaptureAccessory` の利用条件は**内側ディスプレイでの全画面表示 + アクティブなカメラセッション**です。両ディスプレイの同時使用はカメラアプリのみで、**entitlement を持っているだけでは足りず、カメラセッションが動いている間だけ**両方を使えます。entitlement の名前と申請方法は資料では示されていません。
+`CameraCaptureAccessory` の利用条件は**内側ディスプレイでの全画面表示 + アクティブなカメラセッション**です。両ディスプレイの同時点灯はカメラアプリのみです。
+
+1 日目の Group Lab では「システムの entitlement が必要」と述べられましたが、名前も申請方法も公開されておらず、**Apple のドキュメント側には entitlement への言及がありません**。現時点では未確認の情報として扱ってください。テント姿勢で内側ディスプレイを光らせる時計のような表現は AlarmKit が提供する機能で、アラーム以外では同じことはできない見込みです。
+
+アクセサリに置ける内容に制限はなく、渡されるのは完全な UIScene です（ウィジェットのような制約はありません）。
 
 UIKit 対応物は `UISceneAccessory`、利用可否は `UISceneAccessoryRegistration.isAvailable`。
 
@@ -438,6 +442,105 @@ UIKit 対応物は `UISceneAccessory`、利用可否は `UISceneAccessoryRegistr
 - `UISplitArrangement` — `.splitArrangement()`、`axes: UIAxis`、`defaultViewProperties`
   - `UISplitArrangementDimension` — `.automatic()` / `.intrinsic()` / `.fractional(_:)` / `.absolute(_:)`
 - `UIOverlayArrangement` — `.overlayArrangement()`、`axes: UIAxis`、`defaultViewProperties.edge: NSDirectionalRectEdge`
+
+## 12. 背景を垂直バーの背後へ広げる（iOS 26.0）
+
+公式の "Preparing your app for iPhone Duo" はヒーロー画像や背景画像について、safe area に閉じ込めるのではなく**垂直バーの下へ広げる**よう指示しています。
+
+> If your view has a hero or background image, extend it under a vertical bar using `backgroundExtensionEffect()` in SwiftUI, or `UIBackgroundExtensionView` in UIKit.
+
+```swift
+BannerView()
+    .backgroundExtensionEffect()   // SwiftUI
+
+UIBackgroundExtensionView          // UIKit
+```
+
+ビューを鏡像に複製して safe area の外側に並べ、その上をぼかす効果です。見やすさと性能のため、通常は 1 つの背景にだけ使います。
+
+## 13. 垂直バーの切り替えは安定した値にする
+
+`toolbarVerticalBehavior(_:)` は画面遷移のたびに切り替えたり、ビューの状態に応じてトグルしたりしないでください。値が変わるとコンテンツが水平バーとの間で流れ直し、ステータスバーの軸と safe area も変わります。特定の画面でバーを隠したいだけなら `toolbarVisibility(_:for:)` を使います。
+
+コンテナごとの解決規則は次のとおりです（Group Lab 由来。解説資料からの引用で、公式ドキュメントでは未確認）。
+
+| コンテナ | どのビューの指定が効くか |
+| --- | --- |
+| `NavigationStack` | 最前面のビュー |
+| `TabView` | 選択中のビュー |
+| `NavigationSplitView` | 最も trailing 側の列 |
+
+## 14. シートの配置（iOS 27.0）
+
+```swift
+.sheet(isPresented: $isShowingDetail) {
+    DetailView()
+        .presentationPlacement(.leading)
+}
+```
+
+`PresentationPlacement` は SDK 上 **`.automatic` / `.leading` / `.center` / `.trailing` の 4 つ**です。UIKit は `UISheetPresentationController.preferredPlacement`。この配置を見るのはシートだけで、ポップオーバーなど他の presentation には効きません。
+
+内側ディスプレイでは centered / leading 配置なら水平バー、**trailing 配置なら垂直バー**になります。地図のように背後のコンテンツを広く見せたい場合に使います。
+
+## 15. 自作バーのための領域問い合わせ（iOS 27.1）
+
+`UITabBar` などを自前で配置しているアプリが、垂直バーの寸法に合わせるための API です。
+
+```swift
+@available(iOS 27.1, *)
+extension UIView.LayoutRegion {
+    static func bar(onEdge edge: UIRectEdge, extent: CGFloat) -> UIView.LayoutRegion
+    static func bar(onEdge edge: NSDirectionalRectEdge, extent: CGFloat) -> UIView.LayoutRegion
+}
+```
+
+ヘッダのコメントは "Returns a bar layout region of a given extent on a given edge." で、1 つの領域に指定できる辺は 1 つだけです。
+
+Group Lab では「iOS 27.1 で、システムがバーを描く領域を位置を指定して問い合わせる API が入る」と案内されましたが名前は示されず、解説資料（d-date/iphone-duo-skill）でも特定できていませんでした。**27.1 SDK のヘッダで実在を確認しています。** ただし独自のタブバーにシステムのタブバーと同じ挙動（スクラブ中のラベル表示、圧縮の判断）を与える API はないので、まず `UITabBarController` / `TabView` への置き換えを検討してください。
+
+### 角への追従（iOS 26.0）
+
+同じ `UIView.LayoutRegion` には、画面の丸い角に追従させる指定があります。
+
+```swift
+static func safeArea(cornerAdaptation: UIView.LayoutRegion.AdaptivityAxis? = nil) -> UIView.LayoutRegion
+static func margins(cornerAdaptation: UIView.LayoutRegion.AdaptivityAxis? = nil) -> UIView.LayoutRegion
+static func readableContent(cornerAdaptation: UIView.LayoutRegion.AdaptivityAxis? = nil) -> UIView.LayoutRegion
+// AdaptivityAxis: .none / .horizontal / .vertical
+```
+
+バーを持たない全画面アプリ（ゲームなど）で、safe area 全体ではなくカメラとステータスバーの領域だけを避けたい場合に使えます。
+
+外側ディスプレイの 4 隅は半径がそろっておらず（ヒンジから遠い側のほうが丸い）、これまで角を扱う必要がなかった位置に角が現れます。UIKit で同心の角にする書き方は次のとおりです。
+
+```swift
+view.cornerConfiguration = .uniformCorners(radius: .containerConcentric(minimum: 0))
+```
+
+## 16. カメラ用 scene accessory の登録（UIKit / iOS 27.1）
+
+```swift
+let configuration = UISceneConfiguration()
+configuration.delegateClass = ScriptSceneDelegate.self
+
+let accessory = UISceneAccessory.cameraCapture(sceneConfiguration: configuration, userInfo: model)
+registration = registerSceneAccessory(accessory)   // 戻り値は強参照で保持する
+```
+
+- 登録先は**撮影画面を表示しているビュー**。そのビューが画面にある間だけコンテンツが出る
+- 提供をやめるときだけ `unregisterSceneAccessory(_:)` を呼ぶ。一時的に止めたいなら登録は残して `isEnabled` を切る
+- session role（`UISceneSession.Role.windowCameraCaptureAccessory`）はシステムが割り当てる。シーンマニフェストに書いても効かない
+- 状態は送り合わず同じオブジェクトを共有する。UIKit は `userInfo` で渡し、接続時に `UIScene.ConnectionOptions.sceneAccessoryUserInfo` から取り出す
+
+**利用可否とオン・オフは別物です。**
+
+| | 決めるのは | SwiftUI | UIKit |
+| --- | --- | --- | --- |
+| 利用可否 | システム | `onAvailabilityChange(perform:)` | `isAvailable` |
+| オン・オフ | アプリ | `CameraCaptureAccessory(isEnabled:)` | `isEnabled` |
+
+利用可否は、キャプチャ停止・アプリが前面から外れる・端末を閉じる・開いた状態の Split View などで変わります。同じ種類の登録は最も手前のものだけが表示されます。外側ディスプレイがない端末では `isAvailable` が false を返し続けるので、1 つの経路で書けます。
 
 ## SDK に存在しなかったもの
 

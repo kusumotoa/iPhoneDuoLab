@@ -9,6 +9,7 @@
 - [ ] **iOS 27.1 SDK でビルドする** — 全画面表示の前提条件です。Xcode 26 / 27.0 では黒帯が残ります
 - [ ] Deployment target を確認する。新 API の大半は iOS 27.1 から
 - [ ] **Xcode 27.1 の Device Hub** で iPhone Duo シミュレータを選び、開閉・回転・折り曲げを確認する
+- [ ] 姿勢そのものだけでなく、**姿勢から姿勢へ移る途中の表示**も確認する
 - [ ] Xcode 27.1 の **App Resizability スキル**を試す（旧アプリ近代化スキルの改称版で、SwiftUI と iPhone Duo に対応）
 - [ ] `UIRequiresFullScreen` を外す（当面は尊重されますが非推奨扱いで、開閉によるリサイズは発生します）
 
@@ -22,6 +23,7 @@
 - [ ] **固定幅（fixed widths）を消す** — HIG が避けよと書いているのは固定幅と特定ディスプレイへの依存であり、幅による分岐そのものではありません
 - [ ] user interface idiom からデバイスを推測している箇所を消す
 - [ ] アプリが**自由にリサイズできる**状態になっているか確認する
+- [ ] size class で分岐して**別々のコンテナを使っている箇所**を洗い出し、状態を上位に持ち上げるか分岐をやめる（閉じるたびに状態が消える）
 
 ## safe area と margins
 
@@ -29,6 +31,8 @@
 - [ ] layout margins（SwiftUI は `contentMargins(for: .container)`）を尊重する
 - [ ] **背景は safe area の外側やバーの背後まで広げる**。操作可能な要素と前景コンテンツは safe area の内側に置く
 - [ ] 縦向き固定で作ってきたアプリは、左右のインセットを前提にしていない箇所が残りやすいので重点的に見る
+- [ ] `view.bounds.width - safeAreaInsets.left * 2` のように**片側を 2 倍している箇所**を探す（典型的な壊れどころ）
+- [ ] 背景画像を持つビューは `backgroundExtensionEffect()` / `UIBackgroundExtensionView` で垂直バーの背後まで広げる
 - [ ] 06: 外側のスクロールビューだけでなく、**その中の入れ子のコンテナ**も端を `view` に貼り直していないか確認する
 - [ ] 06: セル幅や高さを `UIScreen.main` / `view.bounds` から計算していないか確認する。コンテナの**実幅**から求める
 - [ ] 06: 自前でフレームを計算するサードパーティの UI ライブラリ（サイドメニューなど）が safe area を見ているか確認する
@@ -46,6 +50,11 @@
 - [ ] 必要なら `axisBehavior(.horizontalOnly)` / `.verticalPreferred` で項目ごとに制御する
 - [ ] ツールバー項目が 1 つだけのシートでは `toolbarVerticalBehavior(.disabled)` を検討する
 - [ ] キーボードのアクセサリバーはキーボードに付随させたままにする
+- [ ] **タブ項目にアイコンを設定する**（アイコンがなくても垂直へは移るが、既定でアイコンだけが表示されるので分かりにくくなる）
+- [ ] 垂直バーの**圧縮とオーバーフロー**を確認する。回転・ピクチャ・イン・ピクチャ・Split View で高さが変わり、複数のバーが同じ辺に集まるため、余裕がありそうでも圧縮が起きる。**シミュレータを待たずに着手できる**
+- [ ] `toolbarVerticalBehavior(.disabled)` は安定した選択として使い、状態に応じてトグルしない。隠したいだけなら `toolbarVisibility(_:for:)`
+- [ ] 地図のように背後を広く見せたいシートは `presentationPlacement(_:)` / `preferredPlacement` で配置を指定する
+- [ ] 自作のタブバーを残す場合は `UIView.LayoutRegion.bar(onEdge:extent:)`（iOS 27.1）で垂直バーの寸法に合わせる
 - [ ] 06: 不透明バー（`isTranslucent = false`）のアプリで、垂直バー付きの姿勢に**本文が真っ白になる画面**がないか確認する。原因が `extendedLayoutIncludesOpaqueBars` なら各 `viewDidLoad` で `true` にする（公式の記載はなく、1 アプリでの実測）
 - [ ] 06: 共通基底クラスの継承を一括で変える前に、基底クラスが `viewDidLoad` で無条件に何をするかを読む
 

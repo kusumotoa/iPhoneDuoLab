@@ -110,6 +110,34 @@ AR など没入型の全画面アプリは通常どおり作ってステータ�
 
 姿勢ごとの例としては、本のように折った状態ではアラートを trailing 側へ、卓上に立てた状態では上側を離れて見るコンテンツ、下側を操作コントロールの配置先にする、という形が挙げられています。
 
+## 原則 5 — 分岐でビュー階層を作り替えない
+
+size class で `if` を切り、分岐ごとに別のコンテナを使っている SwiftUI のコードは、切り替わった時点で片方のビュー階層が捨てられます。状態を上位に持ち上げていなければ失われます。
+
+```swift
+// 避ける: 分岐ごとに別のコンテナ
+if horizontalSizeClass == .regular {
+    NavigationSplitView { ... } detail: { ... }
+} else {
+    NavigationStack { ... }
+}
+```
+
+iPad のリサイズでも起きていた問題ですが、iPhone Duo では**内側ディスプレイから閉じるたびに**表面化します。`NavigationSplitView` 単体や `ArrangementView` で吸収できないか、分岐そのものをやめられないかを先に検討してください。`ArrangementView` は iPhone Duo 専用ではなく、折りたたまない端末でも幅に応じて 2 列と単一ビューを切り替えるので、`HStack` / `VStack` / `ZStack` を `if` で切り替える書き方から離れる手段になります。
+
+## 姿勢の作り込みはほどほどに
+
+- 部分的に折った状態が主要な使い方になるのか、姿勢を変える途中の一瞬にすぎないのかは **Apple 内でも結論が出ていません**（Group Lab）。発売直後から作り込みすぎないこと
+- 姿勢を判定して分岐する前に、arrangement view と reserved regions で足りないか検討する。Apple の音楽アプリは arrangement view を使い、分割位置を知るために reserved region を参照しています
+- 卓上に立てる姿勢は、**カメラ側を下にしても外側ディスプレイを下にしても同じ体験**になるべきです
+- 収益に直結するボタン（購入・カートへ追加・無料トライアル開始）が折り目に重なる構成なら、reserved regions で折り目がアクティブかを見て置き場所を選び直します。アラートのようなシステムコンポーネントは自動で動きますが、コンテンツ領域に置いた自前の部品は動きません
+
+### ゲーム
+
+HIG の Best practices にこうあります。
+
+> **Make your game playable in every device pose.** You can choose to lock to either portrait or landscape orientation, but be sure to fill the screen as the device pose changes. When resizing, keep text and control sizes as consistent as possible. Prefer changing the aspect ratio over letterboxing or pillarboxing in games; if you can't avoid letterboxing or pillarboxing, add artwork to the padding area to help the experience feel full screen.
+
 ## アクセシビリティ
 
 - **「透明度を下げる」を有効にすると、垂直バーの背後に不透明な矩形が描かれます。** この矩形はコンテンツに直接接しないよう垂直バーの safe area より少し狭く作られています。**この設定を有効にした状態で表示を確認すること**が勧められました
