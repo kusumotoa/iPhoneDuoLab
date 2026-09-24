@@ -29,19 +29,20 @@ traitCollection.horizontalSizeClass                                    // UIKit
 
 ### 固定幅とブレークポイント
 
-HIG の原文は次の 2 か所だけです。
+Apple の公式資料 3 つが同じ方向を向いています。breakpoint を名指ししているのは Tech Talk です。
 
-- Best practices: "**Avoid fixed widths and display-specific dependencies.**"
-- Dynamic layouts: "steer clear of fixed widths or anything tied to a specific display"
+- Tech Talk「Design for iPhone Duo」（4:08）: "Instead, focus on two size classes: compact width on the outer display and regular width on the inner display. **Avoid fixed widths, breakpoints, or any metrics tied to a specific screen. Instead, always target these size classes.**"
+- HIG Best practices: "**Avoid fixed widths and display-specific dependencies.**"／Dynamic layouts: "steer clear of fixed widths or anything tied to a specific display"
+- 開発者ガイド: "Size your views relative to their container rather than to fixed iPhone dimensions. Make layout calculations based on your scene or containing view's bounds rather than screen dimensions."
 
-**breakpoint という語は HIG に出てきません。** 解説記事にある「ブレークポイントを避ける」は解説側で足された語です。したがって「600pt 以上なら 6 列」のような幅による分岐そのものは HIG の禁止事項ではありません。確認すべきなのは次の 2 点です。
+HIG と開発者ガイドのページには breakpoint という語がありませんが、Tech Talk で明示されています。HIG だけを見て「breakpoint は禁止されていない」と判断しないでください（このスキルの作成中に実際にそう誤りました）。
 
-- 幅をどこから読んでいるか（`UIScreen` 系なら誤り。与えられたコンテナの幅なら正しい）
-- レイアウト自体に固定幅（カラム幅の決め打ちなど）を持っていないか
+- **レイアウトの大枠は size class で切り替える。** 「600pt 以上なら 6 列、未満なら 3 列」のような自前の幅のしきい値は breakpoint に当たる
+- グリッドの列数は、しきい値を持たずにコンテナの実幅に合わせる（`GridItem(.adaptive(minimum:))` のようにセルの最小幅から導く）。これは Group Lab の回答（解説記事経由、公式の文字資料では未確認）で、App Store アプリや Health アプリが横向き 2 列・縦向き 1 列に切り替える例が挙げられている
+- 内側で縦横のレイアウトを変えたい場合も、向きではなく利用できる幅で判断する（iPad では横向きのまま幅の狭いウインドウを作れるため）
+- 幅は `UIScreen` 系からではなくコンテナから読む。レイアウトにカラム幅などの固定幅を持たない
 
-Group Lab では、内側で縦横のレイアウトを変えたい場合も**向きではなく利用できる幅で判断する**よう勧められています（iPad では横向きのまま幅の狭いウインドウを作れるため）。App Store アプリや Health アプリが横向き 2 列・縦向き 1 列に切り替える例です。
-
-グリッドについて HIG: "In a grid-style layout, **prefer an even number of columns** so content divides cleanly."（折り目できれいに割れるため）
+グリッドについて HIG: "In a grid-style layout, **prefer an even number of columns** so content divides cleanly."（折り目できれいに割れるため）。`.adaptive` で導いた列数は奇数になりうるので、偶数にそろえるなら実幅から求めた列数を偶数に丸めるなどの調整が要る（解釈）。
 
 ### 分岐でビュー階層を作り替えない
 

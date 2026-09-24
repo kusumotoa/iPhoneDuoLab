@@ -20,7 +20,7 @@
 - [ ] `UIScreen.main` → `window?.windowScene?.screen` に置き換える
 - [ ] `UIScreen.main.scale` → `traitCollection.displayScale` に置き換える
 - [ ] 画面参照を environment・trait collection・**scene の bounds** に置き換える。画面情報が必要なら window scene から動的に取得する
-- [ ] **固定幅（fixed widths）を消す** — HIG が避けよと書いているのは固定幅と特定ディスプレイへの依存であり、幅による分岐そのものではありません
+- [ ] **固定幅、ブレークポイント、特定の画面に結び付いた寸法を除去する**。大枠は size class で切り替え、グリッドの列数などはコンテナの実幅に合わせる（Tech Talk「Design for iPhone Duo」4:08）
 - [ ] user interface idiom からデバイスを推測している箇所を消す
 - [ ] アプリが**自由にリサイズできる**状態になっているか確認する
 - [ ] size class で分岐して**別々のコンテナを使っている箇所**を洗い出し、状態を上位に持ち上げるか分岐をやめる（閉じるたびに状態が消える）

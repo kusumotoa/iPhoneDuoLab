@@ -165,9 +165,9 @@ struct DeviceHingeContext: Equatable, Sendable {
 
 `DeviceHinge.Status` — `.closed` / `.partiallyOpen` / `.fullyOpen` の **3 つ**。
 
-### 記事との差分
+### 補足
 
-記事では型名が `Hinge` のように読めますが、実際は **`DeviceHinge` / `DeviceHingeContext`** です。SwiftUI 側の `Status` に `unknown` は**ありません**（UIKit の `UIHingeStatus` にのみ `.unknown = 0` があります）。ヒンジ状態を読む EnvironmentValues は存在せず、取得手段は `onHingeChange` のみです。
+型名は **`DeviceHinge` / `DeviceHingeContext`** です（`Hinge` という型はありません）。SwiftUI 側の `Status` に `unknown` は**ありません**（UIKit の `UIHingeStatus` にのみ `.unknown = 0` があります）。ヒンジ状態を読む EnvironmentValues は存在せず、取得手段は `onHingeChange` のみです。
 
 UIKit 側は `UIHinge`（`status` / `angle: CGFloat`）と `UIHingeInteraction`（`init(updateHandler:)`、`isEnabled`、`Update.hinge: UIHinge?`）です。
 

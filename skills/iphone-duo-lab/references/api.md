@@ -111,7 +111,7 @@ struct DeviceHingeContext: Equatable, Sendable {
 }
 ```
 
-型名は `Hinge` ではなく **`DeviceHinge` / `DeviceHingeContext`**。ヒンジを読む EnvironmentValues はなく、`onHingeChange` だけです。
+型名は **`DeviceHinge` / `DeviceHingeContext`**（`Hinge` という型はない）。ヒンジを読む EnvironmentValues はなく、`onHingeChange` だけです。
 
 UIKit: `UIHinge`（`status: UIHingeStatus`、`angle: CGFloat`。`UIHingeStatus` には `.unknown` がある）、`UIHingeInteraction`（`init(updateHandler:)`、`isEnabled`、`Update.hinge: UIHinge?`）。
 
@@ -142,7 +142,7 @@ UIKit:
 | `topBarPinnedTrailing` | `UINavigationItem.pinnedTrailingGroup`（`UIBarButtonItem.creatingFixedGroup()`） |
 | `visibilityPriority(_:)` | `UIBarButtonItemVisibilityPriority` |
 | `ToolbarOverflowMenu` | `UINavigationItem.additionalOverflowItems` |
-| `cancellationAction` placement | `UINavigationItem.leadingItemGroups` |
+| `cancellationAction` placement（独自の戻る・閉じる） | leading item（`UINavigationItem.leadingItemGroups`）。`leftItemsSupplementBackButton` は `false`（既定値）のままにする |
 
 `toolbarVerticalBehavior` は安定した値として扱い、状態に応じてトグルしないでください（値が変わると safe area とステータスバーの軸が変わる）。単に隠したいなら `toolbarVisibility(_:for:)` を使います。
 

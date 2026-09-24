@@ -148,14 +148,19 @@ HIG の Best practices にこうあります。
 
 - interface orientation で分岐する
 - `UIScreen.main` を参照する
-- **固定幅（fixed widths）を使う**
-- **特定のディスプレイに紐づくもの（display-specific dependencies）に依存する**
+- **固定幅、ブレークポイント、特定の画面に結び付いた寸法を使う**
 - user interface idiom からデバイスを推測する
 - 向かい合う safe area inset が等しいと仮定する
 
-### HIG の原文
+### Apple の原文
 
-一次情報は HIG の [Designing for iPhone Duo](https://developer.apple.com/design/human-interface-guidelines/designing-for-iphone-duo) です。Best practices の項にこうあります。
+3 つの公式資料が同じことを言っています。
+
+**Tech Talk「[Design for iPhone Duo](https://developer.apple.com/videos/play/tech-talks/111466/)」（4:08）** — breakpoint を名指ししているのはこれです。
+
+> People will use iPhone Duo in many different poses, and you'll want your app to look great across all of them. But that doesn't mean designing a custom layout for each pose. Instead, focus on two size classes: compact width on the outer display and regular width on the inner display. **Avoid fixed widths, breakpoints, or any metrics tied to a specific screen. Instead, always target these size classes.** Build your layouts with layout margins and horizontal safe area insets.
+
+**HIG「[Designing for iPhone Duo](https://developer.apple.com/design/human-interface-guidelines/designing-for-iphone-duo)」** の Best practices:
 
 > **Build your app to resize.** Because the device has two displays and supports a wide range of poses and Split View multitasking, your app can appear at many different sizes. Use size classes, layout margins, and safe area insets to lay out controls and content. **Avoid fixed widths and display-specific dependencies.**
 
@@ -163,22 +168,22 @@ Dynamic layouts の項でも繰り返されます。
 
 > As with all iOS devices, build your layouts with layout margins and safe area insets, and **steer clear of fixed widths or anything tied to a specific display**.
 
-避けよと書かれているのは **fixed widths** と **display-specific dependencies（特定のディスプレイに紐づくもの）** の 2 つです。
+**開発者ガイド「[Preparing your app for iPhone Duo](https://developer.apple.com/documentation/technologyoverviews/preparing-your-app-for-iphone-duo)」**:
 
-### 「ブレークポイント」は HIG に出てこない
+> Size your views relative to their container rather than to fixed iPhone dimensions. Make layout calculations based on your scene or containing view's bounds rather than screen dimensions.
 
-解説記事には「固定幅、ブレークポイント、特定の画面に結び付いた寸法は避ける」という記述がありますが、**HIG に breakpoint という語は一度も登場しません**。解説側で足された語です。
+HIG と開発者ガイドのページには breakpoint という語は出てきませんが、Tech Talk で明示されています。**レイアウトの大枠は自前の幅のしきい値ではなく、size class（compact / regular の 2 つ）で切り替える**、というのが Apple の指針です。
 
-したがって「600pt 以上なら 6 列、未満なら 3 列」のような幅による分岐は、**HIG が禁じているものではありません**。HIG が問題にしているのは、レイアウトに固定幅を持つことと、特定のディスプレイの寸法に依存することです。
+### 「600pt 以上なら 6 列、未満なら 3 列」はどうか
 
-確認すべきは次の 2 点です。
+自前の幅のしきい値で段階を切り替えているので、Tech Talk が避けるよう言っている breakpoint に当たります。代わりの書き方は 2 つです。
 
-| 見るところ | 判断 |
-| --- | --- |
-| その幅をどこから読んでいるか | `UIScreen` 系ならアウト。与えられたコンテナの幅なら問題なし |
-| レイアウト自体に固定幅を持っていないか | カラム幅を決め打ちしていればアウト |
+- 大枠の切り替えなら size class で分岐する（外側 = compact、内側 = regular）
+- グリッドの列数なら、しきい値を持たずにコンテナの実幅に合わせる（例: `GridItem(.adaptive(minimum:))` のようにセルの最小幅から列数を導く）
 
-垂直バーが 84pt を占めるぶん、画面幅と実際に使える幅は常にずれます。**幅をどこから読むか**が実害に直結します。
+グリッドを実際の幅に合わせるという指針は Group Lab での回答です（解説記事経由で、公式の文字資料では未確認）。App Store アプリや Health アプリが横向き 2 列・縦向き 1 列に切り替える例が挙げられています。
+
+どちらの場合も、幅は `UIScreen` からではなく**コンテナから読む**必要があります。垂直バーが 84pt を占めるため、画面幅と実際に使える幅は常にずれます。
 
 ### グリッドは偶数列を選ぶ
 
@@ -186,7 +191,7 @@ HIG には別の指針として次が書かれています。
 
 > **In a grid-style layout, prefer an even number of columns so content divides cleanly.**
 
-折り目で左右に分かれたときにきれいに割れるためです。6 列は条件を満たしますが、**3 列は奇数なので外れます**（`prefer` なので強制ではありません）。
+折り目で左右に分かれたときにきれいに割れるためです。3 列のような奇数列はこの指針から外れます（`prefer` なので強制ではありません）。`.adaptive` で列数を導く場合は奇数になりうるので、偶数にそろえたいなら実幅から求めた列数を偶数に丸める、といった調整が要ります（これは解釈です）。
 
 ### 折りへの追従のほうが重要
 

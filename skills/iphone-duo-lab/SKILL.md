@@ -11,7 +11,11 @@ iPhone Duo は 2026-10-23 発売、iOS 27.1 搭載。内側と外側の 2 画面
 
 ## 何より先に守ること
 
-**情報源の優先順位は、公式ドキュメント → SDK 本体 → 実測 → 解説記事。** 解説記事（Zenn 記事、sarunw、d-date/iphone-duo-skill など）は理解の助けにはなりますが、実際に食い違いがありました。たとえば解説記事の「固定幅・**ブレークポイント**を避ける」は HIG の原文にない語で、HIG は "Avoid fixed widths and display-specific dependencies" としか書いていません。この語を根拠にすると「幅で分岐すること自体がダメ」という誤った規則ができてしまいます。
+**情報源の優先順位は、Apple の公式資料 → SDK 本体 → 実測 → 解説記事。** 公式資料は 1 つではありません。HIG、開発者ガイド（Preparing your app for iPhone Duo）、Tech Talk 6 本の文字起こしの**すべて**を確かめてから「公式に書かれていない」と判断してください。
+
+実際にこれで誤りました。「breakpoint を避ける」は HIG のページには出てきませんが、Tech Talk「Design for iPhone Duo」（4:08）で "Avoid fixed widths, breakpoints, or any metrics tied to a specific screen. Instead, always target these size classes." と明言されています。HIG だけを見て「解説記事が足した語だ」と結論づけ、正しかった解説記事を誤りと書いてしまいました。
+
+Tech Talk の文字起こしは `https://developer.apple.com/videos/play/tech-talks/111461/` 〜 `111466/` のページに含まれています（111461 Prepare your app / 111462 Raise the bar / 111463 Strike a pose / 111464 Leverage multiple displays and scenes / 111465 Build a great camera experience / 111466 Design for iPhone Duo）。
 
 **API のシグネチャを推測で書かない。** iPhone Duo の API はベータで、ドキュメント未収載のものもあります。`references/api.md` にないものは SDK で確かめてから書いてください。分からないと言うほうが、もっともらしい誤った綴りを書くよりましです。
 
@@ -47,7 +51,7 @@ swiftc -typecheck -parse-as-library -sdk "$SIM" -target arm64-apple-ios27.1-simu
 ## 全体に効く原則
 
 - **size class で判断する。** 外側は compact width、内側は regular width（内側は向きによらず regular / regular）。idiom や interface orientation で分岐しない。内側は宣言した向きに従って回転せずスケーリングされるので、向きを見ても意図どおりにならない
-- **幅による分岐は禁止されていない。** 避けるべきは「レイアウトに固定幅を持つこと」と「特定のディスプレイの寸法に依存すること」。問題になるのは、その幅を**どこから読むか**（`UIScreen.main` なら誤り、コンテナの幅なら正しい）
+- **固定幅・breakpoint・特定の画面に結び付いた寸法を使わない**（Tech Talk で明言）。大枠は size class で切り替え、グリッドの列数などはコンテナの実幅に合わせる。幅は `UIScreen.main` からではなくコンテナから読む
 - **safe area は左右非対称になる前提で書く。** 垂直バーは 84pt で片側にだけ付き、回転すると leading / trailing が入れ替わる。片側の値を反対側に流用しない
 - **標準コンポーネントを使う。** `UINavigationController` / `UITabBarController`（`NavigationStack` / `TabView`）が提供するバーだけが垂直になる。`UIToolbar` / `UINavigationBar` / `UITabBar` を直接置いたものは水平のまま
 - **抽象度の高い API から選ぶ。** システムコンポーネント → arrangement view → reserved regions → ヒンジ角度の順。ヒンジ角度はインタラクションやエフェクト用で、レイアウトの決定には使わない
