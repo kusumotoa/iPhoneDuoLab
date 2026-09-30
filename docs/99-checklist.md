@@ -2,68 +2,68 @@
 
 既存アプリを iPhone Duo に対応させるときの確認項目です。カメラを使うアプリは [04-camera.md](04-camera.md) のチェックリストも参照してください。
 
-既存の UIKit アプリで実際に不具合になった箇所（本文が真っ白になる、入れ子の制約が端に貼り戻る、など）は [06-existing-app-migration.md](06-existing-app-migration.md) に症状別でまとめています。該当項目には「06」と書いています。
+既存の UIKit アプリで実際に不具合になった箇所（本文が真っ白になる、入れ子の制約が端に貼り戻る、など）は、[06-existing-app-migration.md](06-existing-app-migration.md) に症状別でまとめています。該当する項目には「06」と付けています。
 
 ## ビルドと検証環境
 
-- [ ] **iOS 27.1 SDK でビルドする** — 全画面表示の前提条件です。Xcode 26 / 27.0 では黒帯が残ります
+- [ ] **iOS 27.1 SDK でビルドする**。全画面表示の前提条件で、Xcode 26 / 27.0 では黒帯が残ります
 - [ ] Deployment target を確認する。新 API の大半は iOS 27.1 から
-- [ ] **Xcode 27.1 の Device Hub** で iPhone Duo シミュレータを選び、開閉・回転・折り曲げを確認する
-- [ ] 姿勢そのものだけでなく、**姿勢から姿勢へ移る途中の表示**も確認する
-- [ ] Xcode 27.1 の **App Resizability スキル**を試す（旧アプリ近代化スキルの改称版で、SwiftUI と iPhone Duo に対応）
-- [ ] `UIRequiresFullScreen` を外す（当面は尊重されますが非推奨扱いで、開閉によるリサイズは発生します）
+- [ ] Xcode 27.1 の Device Hub で iPhone Duo シミュレータを選び、開閉・回転・折り曲げを確認する
+- [ ] 各姿勢の表示に加えて、**姿勢から姿勢へ移る途中の表示**も確認する
+- [ ] Xcode 27.1 の App Resizability スキルを試す（旧アプリ近代化スキルの改称版で、SwiftUI と iPhone Duo に対応）
+- [ ] `UIRequiresFullScreen` を外す（当面は尊重されますが、非推奨扱いです。開閉によるリサイズは発生します）
 
 ## レイアウト判定の見直し
 
 - [ ] size class（`horizontalSizeClass` / `verticalSizeClass`）で分岐する
-- [ ] interface orientation で分岐している箇所を潰す。**向きではなく利用できる幅で判断する**
+- [ ] interface orientation で分岐している箇所をなくし、**利用できる幅**で判断する
 - [ ] `UIScreen.main` → `window?.windowScene?.screen` に置き換える
 - [ ] `UIScreen.main.scale` → `traitCollection.displayScale` に置き換える
-- [ ] 画面参照を environment・trait collection・**scene の bounds** に置き換える。画面情報が必要なら window scene から動的に取得する
-- [ ] **固定幅、ブレークポイント、特定の画面に結び付いた寸法を除去する**。大枠は size class で切り替え、グリッドの列数などはコンテナの実幅に合わせる（Tech Talk「Design for iPhone Duo」4:08）
+- [ ] 画面参照を environment・trait collection・scene の bounds に置き換える。画面情報が必要なら、window scene から動的に取得する
+- [ ] **固定幅、ブレークポイント、特定の画面に結び付いた寸法を除去する**。大枠は size class で切り替え、グリッドの列数などはコンテナの実幅に合わせます（Tech Talk「Design for iPhone Duo」4:08）
 - [ ] user interface idiom からデバイスを推測している箇所を消す
-- [ ] アプリが**自由にリサイズできる**状態になっているか確認する
-- [ ] size class で分岐して**別々のコンテナを使っている箇所**を洗い出し、状態を上位に持ち上げるか分岐をやめる（閉じるたびに状態が消える）
+- [ ] アプリが自由にリサイズできる状態になっているか確認する
+- [ ] size class で分岐して別々のコンテナを使っている箇所を洗い出し、状態を上位に持ち上げるか、分岐をやめる（そのままだと、折りたたむたびに状態が消えます）
 
 ## safe area と margins
 
-- [ ] safe area insets を **4 辺それぞれ個別に**扱う。**片側の値を反対側に流用しない**
+- [ ] safe area insets は 4 辺それぞれ個別に扱う。**片側の値を反対側に流用しない**
 - [ ] layout margins（SwiftUI は `contentMargins(for: .container)`）を尊重する
-- [ ] **背景は safe area の外側やバーの背後まで広げる**。操作可能な要素と前景コンテンツは safe area の内側に置く
-- [ ] 縦向き固定で作ってきたアプリは、左右のインセットを前提にしていない箇所が残りやすいので重点的に見る
-- [ ] `view.bounds.width - safeAreaInsets.left * 2` のように**片側を 2 倍している箇所**を探す（典型的な壊れどころ）
+- [ ] **背景は safe area の外側やバーの背後まで広げる**。操作できる要素と前景コンテンツは safe area の内側に置く
+- [ ] 縦向き固定で作ってきたアプリは、左右のインセットを考慮していない箇所が残りやすいので、重点的に見る
+- [ ] `view.bounds.width - safeAreaInsets.left * 2` のように、**片側を 2 倍している箇所**を探す（よく壊れる箇所です）
 - [ ] 背景画像を持つビューは `backgroundExtensionEffect()` / `UIBackgroundExtensionView` で垂直バーの背後まで広げる
-- [ ] 06: 外側のスクロールビューだけでなく、**その中の入れ子のコンテナ**も端を `view` に貼り直していないか確認する
-- [ ] 06: セル幅や高さを `UIScreen.main` / `view.bounds` から計算していないか確認する。コンテナの**実幅**から求める
+- [ ] 06: 外側のスクロールビューだけでなく、その中の入れ子のコンテナも、端を `view` に貼り直していないか確認する
+- [ ] 06: セル幅や高さを `UIScreen.main` / `view.bounds` から計算していないか確認する。コンテナの実幅から求める
 - [ ] 06: 自前でフレームを計算するサードパーティの UI ライブラリ（サイドメニューなど）が safe area を見ているか確認する
 
 ## ナビゲーションとバー
 
-- [ ] `UINavigationController` / `UITabBarController`（SwiftUI は `NavigationStack` / `TabView`）を使う。自前のバーは垂直配置の恩恵を受けられません
-- [ ] **サブビューとして追加した `UITabBar` を `UITabBarController` / `TabView` に置き換える**
-- [ ] ツールバー構成を「**主要ナビゲーション → 主要アクション**」の順に見直す
-- [ ] 画像で表示する項目にも**タイトルを提供する**（SwiftUI は `Label`）
+- [ ] `UINavigationController` / `UITabBarController`（SwiftUI は `NavigationStack` / `TabView`）を使う。自前のバーは、垂直配置に自動では対応しません
+- [ ] サブビューとして追加した `UITabBar` を、`UITabBarController` / `TabView` に置き換える
+- [ ] ツールバー構成を「主要ナビゲーション → 主要アクション」の順に見直す
+- [ ] 画像で表示する項目にも、タイトルを付ける（SwiftUI は `Label`）
 - [ ] タイトルだけの項目、テキストと画像を併記するカスタムビューを減らす
-- [ ] **件数表示をバッジに置き換える**
+- [ ] 件数表示をバッジに置き換える
 - [ ] 独自のオーバーフローを単一のシステム管理メニューへ統合する
-- [ ] **グループ単位で可視性優先度を決める**
+- [ ] グループ単位で可視性の優先度を決める
 - [ ] 必要なら `axisBehavior(.horizontalOnly)` / `.verticalPreferred` で項目ごとに制御する
 - [ ] ツールバー項目が 1 つだけのシートでは `toolbarVerticalBehavior(.disabled)` を検討する
 - [ ] キーボードのアクセサリバーはキーボードに付随させたままにする
-- [ ] **タブ項目にアイコンを設定する**（アイコンがなくても垂直へは移るが、既定でアイコンだけが表示されるので分かりにくくなる）
-- [ ] 垂直バーの**圧縮とオーバーフロー**を確認する。回転・ピクチャ・イン・ピクチャ・Split View で高さが変わり、複数のバーが同じ辺に集まるため、余裕がありそうでも圧縮が起きる。**シミュレータを待たずに着手できる**
-- [ ] `toolbarVerticalBehavior(.disabled)` は安定した選択として使い、状態に応じてトグルしない。隠したいだけなら `toolbarVisibility(_:for:)`
+- [ ] **タブ項目にアイコンを設定する**（アイコンがなくても垂直バーには移りますが、既定ではアイコンだけが表示されるので、分かりにくくなります）
+- [ ] 垂直バーの圧縮とオーバーフローを確認する。回転・ピクチャ・イン・ピクチャ・Split View で高さが変わり、複数のバーが同じ辺に集まります。余裕がありそうでも圧縮が起きます。**シミュレータを待たずに着手できます**
+- [ ] `toolbarVerticalBehavior(.disabled)` は固定の設定として使い、状態に応じて切り替えない。隠したいだけなら `toolbarVisibility(_:for:)` を使う
 - [ ] 地図のように背後を広く見せたいシートは `presentationPlacement(_:)` / `preferredPlacement` で配置を指定する
 - [ ] 自作のタブバーを残す場合は `UIView.LayoutRegion.bar(onEdge:extent:)`（iOS 27.1）で垂直バーの寸法に合わせる
-- [ ] 06: 不透明バー（`isTranslucent = false`）のアプリで、垂直バー付きの姿勢に**本文が真っ白になる画面**がないか確認する。原因が `extendedLayoutIncludesOpaqueBars` なら各 `viewDidLoad` で `true` にする（公式の記載はなく、1 アプリでの実測）
-- [ ] 06: 共通基底クラスの継承を一括で変える前に、基底クラスが `viewDidLoad` で無条件に何をするかを読む
+- [ ] 06: 不透明バー（`isTranslucent = false`）のアプリで、垂直バー付きの姿勢に**本文が真っ白になる画面**がないか確認する。原因が `extendedLayoutIncludesOpaqueBars` なら、各 `viewDidLoad` で `true` にする（公式の記載はなく、1 アプリでの実測です）
+- [ ] 06: 共通基底クラスの継承を一括で変える前に、基底クラスが `viewDidLoad` で無条件に何をしているかを読む
 
-## レイアウトの適応
+## レイアウトの調整
 
-- [ ] **中央配置レイアウトを点検し、2 列化や displacement を検討する**
-- [ ] グリッド状のレイアウトは**列数を偶数に**する
-- [ ] **連続スクロールコンテンツを領域間で移動させていないか**確認する
-- [ ] **姿勢間の遷移を滑らかにアニメーションできるか**確認する
+- [ ] 中央配置のレイアウトを点検し、2 列化や displacement（要素の移動）を検討する
+- [ ] グリッド状のレイアウトは、列数を偶数にする
+- [ ] 連続スクロールコンテンツを、領域間で移動させていないか確認する
+- [ ] 姿勢間の遷移を、滑らかにアニメーションできるか確認する
 - [ ] `reservedRegions(kind: .division)` で折り目を避ける（自前のオーバーレイのみ。スクロールコンテンツは避ける必要なし）
 - [ ] `reservedRegions(kind: .occlusion)` でカメラ領域を避ける
 - [ ] `UIView._boundaryLayoutRegions` を使っていたら `reservedRegions(kind:)` に移行する

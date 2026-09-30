@@ -2,7 +2,7 @@
 
 iPhone Duo（折りたたみ iPhone、2026 年 10 月 23 日発売予定）対応の試行錯誤用リポジトリです。
 
-Apple Tech Talks と各種解説記事を一次資料として整理し、**実際に iOS 27.1 SDK と iPhone Duo シミュレータで動かして裏を取る**ことを目的にしています。
+Apple Tech Talks と各種解説記事を一次資料として整理し、iOS 27.1 SDK と iPhone Duo シミュレータで実際に動かして裏を取ることを目的にしています。
 
 ## 構成
 
@@ -66,9 +66,9 @@ open iPhoneDuoLab.xcodeproj
 
 実行先に iPhone Duo シミュレータを選んでください。
 
-Xcode 27 のバンドルに `Simulator.app` はなく、**`DeviceHub.app`** に置き換わっています。折りたたみ状態はデバイスウィンドウ**下部バー右端のスライダー**で切り替えます。値域は 0〜180 度のヒンジ角度そのもので、0 が closed、180 が fully open、中間が partially folded です。メニュー項目もキーボードショートカットもなく、`simctl` にも該当コマンドはありません。
+Xcode 27 のバンドルに `Simulator.app` はなく、`DeviceHub.app` に置き換わっています。折りたたみ状態は、デバイスウィンドウ下部バーの右端にあるスライダーで切り替えます。値はヒンジ角度（0 から 180 度）そのもので、0 が closed、180 が fully open、中間が partially folded です。メニュー項目もキーボードショートカットもなく、`simctl` にも該当コマンドはありません。
 
-内側ディスプレイにはタッチ操作が届かないため、自動操作する場合は**閉じた状態で画面を開いてから折る**必要があります。詳細は [docs/03-verification.md](docs/03-verification.md) を参照してください。
+内側ディスプレイにはタッチ操作が届きません。自動操作するときは、**閉じた状態で画面を開いてから折る**必要があります。詳細は [docs/03-verification.md](docs/03-verification.md) を参照してください。
 
 ## 進め方
 
@@ -81,9 +81,9 @@ Xcode 27 のバンドルに `Simulator.app` はなく、**`DeviceHub.app`** に�
 
 ## 情報の優先順位
 
-1. **Apple の公式資料**（一次情報）— HIG、開発者ガイド、Tech Talk の文字起こし
-2. **iOS 27.1 SDK 本体** — API の実在と availability はここで確認
-3. **シミュレータでの実測**
-4. 解説記事 — 理解の助けとして使うが、公式と異なれば公式を優先
+1. Apple の公式資料（一次情報）: HIG、開発者ガイド、Tech Talk の文字起こし
+2. iOS 27.1 SDK 本体: API の実在と availability はここで確認する
+3. シミュレータでの実測
+4. 解説記事: 理解の助けとして使う。公式と異なれば公式を優先する
 
-公式資料は HIG・開発者ガイド・Tech Talk（文字起こしつき）の 3 種類あり、「公式に書かれていない」と判断する前に全部を確かめます。HIG だけを見て判断し、正しかった解説記事の記述（「ブレークポイントは避ける」— Tech Talk「Design for iPhone Duo」4:08 で明言）を誤りと書いてしまったことがあり、訂正済みです（[docs/90-sources.md](docs/90-sources.md)）。
+公式資料は HIG・開発者ガイド・Tech Talk（文字起こしつき）の 3 種類あります。「公式に書かれていない」と判断する前に、全部を確かめます。以前、HIG だけを見て、解説記事の「ブレークポイントは避ける」を誤りと書いてしまいました。この記述は Tech Talk「Design for iPhone Duo」4:08 で明言されていて、正しかったため訂正しています（[docs/90-sources.md](docs/90-sources.md)）。

@@ -2,9 +2,11 @@
 
 ## 優先順位
 
-**Apple の公式資料を正とします。** 解説記事は理解の助けとして使いますが、記述が異なる場合は公式を優先し、docs には公式の原文を引用します。
+Apple の公式資料を正とします。解説記事は理解の助けとして使います。記述が異なる場合は公式を優先し、docs には公式の原文を引用します。
 
-公式資料は HIG・開発者ガイド・Tech Talk の 3 種類あり、**「公式に書かれていない」と判断する前に全部を確かめます**。この docs では一度それを怠り、誤りを書きました。解説記事の「固定幅、ブレークポイント、特定の画面に結び付いた寸法は避ける」を、HIG のページだけを見て「breakpoint は解説側で足された語」と書いていましたが、Tech Talk「Design for iPhone Duo」（4:08）に "Avoid fixed widths, breakpoints, or any metrics tied to a specific screen." とあり、**解説記事の記述が正しかった**ことを 2026-09-24 に確認して訂正しました。
+公式資料は HIG・開発者ガイド・Tech Talk の 3 種類あります。「公式に書かれていない」と判断する前に、**3 種類すべてを確かめます**。この docs では一度それを怠り、誤りを書きました。
+
+解説記事には「固定幅、ブレークポイント、特定の画面に結び付いた寸法は避ける」とあります。HIG のページだけを見て、「breakpoint は解説側で足された語」と書いていました。しかし Tech Talk「Design for iPhone Duo」（4:08）に "Avoid fixed widths, breakpoints, or any metrics tied to a specific screen." とあり、解説記事の記述が正しいと分かりました。2026-09-24 に確認して訂正しています。
 
 ## Apple 公式（一次情報）
 
@@ -37,15 +39,15 @@ sarunw.com のシリーズ（Apple の "Design for iPhone Duo" を解説した�
 
 nilcoalescing.com
 
-- [Configuring SwiftUI toolbars on iPhone Duo](https://nilcoalescing.com/blog/ConfiguringSwiftUIToolbarsOnIPhoneDuo/) — SwiftUI 専用。`axisBehavior(_:)` / `toolbarVerticalEdge` / `toolbarVerticalCompressionBehavior(_:)` / `toolbarVerticalBehavior(_:)` の 4 修飾子を解説。UIKit の言及はない。本リポジトリのアプリ(UIKit)には直接のコード対応はないが、「標準コンテナは自動対応、カスタムビュー/テキストのみの項目は垂直化されない」「タブバーとツールバー項目でバー領域を取り合う際の優先度」「シートなど限定的な文脈では垂直バーを無効化して水平に戻す」という設計判断は [06-existing-app-migration.md](06-existing-app-migration.md) の該当箇所と符合する
+- [Configuring SwiftUI toolbars on iPhone Duo](https://nilcoalescing.com/blog/ConfiguringSwiftUIToolbarsOnIPhoneDuo/) — SwiftUI 専用。`axisBehavior(_:)` / `toolbarVerticalEdge` / `toolbarVerticalCompressionBehavior(_:)` / `toolbarVerticalBehavior(_:)` の 4 修飾子を解説。UIKit の言及はない。本リポジトリのアプリ（UIKit）にそのまま使えるコードはありません。ただし次の 3 つの設計判断は、[06-existing-app-migration.md](06-existing-app-migration.md) の該当箇所と合っています。標準コンテナは自動で垂直バーに対応し、カスタムビューやテキストだけの項目は垂直化されません。タブバーとツールバー項目がバーの領域を取り合うときは、優先度で決まります。シートなど限られた場面では、垂直バーを無効にして水平に戻します
 
 日本語記事
 
 - [Zenn / d_date](https://zenn.dev/d_date/articles/d874e248ac7851) — Tech Talks 6 本 + Group Lab の内容を整理。API 一覧と移行チェックリストが充実。著者は Daiki Matsudate（try! Swift Tokyo Main Organizer）
 
-**本リポジトリの docs は、この記事の全文（印刷版 PDF・110 ページ）を一次資料にしています。** Group Lab のタイムスタンプ付き引用が多数含まれており、動画の内容は実質的にこの記事でカバーされています。
+本リポジトリの docs は、この記事の全文（印刷版 PDF・110 ページ）を一次資料にしています。Group Lab のタイムスタンプ付き引用が多数含まれていて、動画の内容はほぼこの記事でカバーされています。
 
-記事の API 検証は Apple Developer Documentation の索引（31,243 項目、2026-09-10 取得）と **iOS 27.0 SDK** で行われ、27.1 向けは 2026-09-17 時点の Beta ドキュメントで再照合されています。そのため 27.1 SDK にしか無い API は本文に現れにくく、こちらで 27.1 SDK を直接引いて補完しています（[03-verification.md](03-verification.md) 参照）。
+記事の著者は、Apple Developer Documentation の索引（31,243 項目、2026-09-10 取得）と iOS 27.0 SDK で API を検証しています。27.1 向けは、2026-09-17 時点の Beta ドキュメントで再照合しています。このため、27.1 SDK にしかない API は記事の本文に現れにくくなっています。こちらで 27.1 SDK を直接調べて補っています（[03-verification.md](03-verification.md) 参照）。
 
 ## 動画
 
@@ -60,15 +62,15 @@ nilcoalescing.com
 
 - [d-date/iphone-duo-skill](https://github.com/d-date/iphone-duo-skill) — Claude Code 用 Skill。Zenn 記事と同じ著者で、**2 回目の Group Lab（2026-09-17）と公式ドキュメント公開分を反映済み**（確認時点のコミット `eb692c2`、2026-09-18）。`SKILL.md` と `references/`（layout / bars / scenes / camera / checklist）の構成
 
-スキルから取り込んだ内容のうち、API は 27.1 SDK で実在を確認してから載せています。確認の過程で、スキルの記述に対して SDK で補えた点が 2 つありました。どちらもスキルの誤りではなく、公開時点で分かっていなかった・書かれていなかった情報です。
+スキルから取り込んだ内容のうち、API は 27.1 SDK で実在を確認してから載せています。その過程で、スキルの記述を SDK で補えた点が 2 つありました。どちらもスキルの誤りではなく、公開時点で分かっていなかった、または書かれていなかった情報です。
 
 | 項目 | スキルの記述 | 27.1 SDK で確認した内容 |
 | --- | --- | --- |
 | `PresentationPlacement` | `.automatic`（既定）のほか leading と trailing | **`.center` もあり、4 つ** |
 | バーの領域を問い合わせる API | 「Group Lab で名前は示されておらず、ドキュメントからも特定できていない。推測で書かないこと」 | **`UIView.LayoutRegion.bar(onEdge:extent:)`**（iOS 27.1）が実在する |
 
-スキルにある「固定幅、ブレークポイント、特定の画面に結び付いた寸法を除去する」と、カスタムの戻るボタンを `leftItemsSupplementBackButton = false` で扱う記述は、いずれも Tech Talk（Design for iPhone Duo 4:08 / Raise the bar with iPhone Duo）の内容どおりで正しい記述です。
+スキルには「固定幅、ブレークポイント、特定の画面に結び付いた寸法を除去する」という記述と、カスタムの戻るボタンを `leftItemsSupplementBackButton = false` で扱う記述があります。どちらも Tech Talk（Design for iPhone Duo 4:08 / Raise the bar with iPhone Duo）の内容と一致していて、正しい記述です。
 
 ## 注記
 
-本リポジトリの docs は上記を一次資料として整理したものです。API のシグネチャについては**ローカルの iOS 27.1 SDK（`iPhoneOS27.1.sdk`）から実際に抽出して裏を取った内容**を [02-api-reference.md](02-api-reference.md) にまとめています。記事と SDK で食い違う点はそちらに明記します。
+本リポジトリの docs は、上記を一次資料として整理したものです。API のシグネチャは、ローカルの iOS 27.1 SDK（`iPhoneOS27.1.sdk`）から実際に抽出して裏を取り、[02-api-reference.md](02-api-reference.md) にまとめています。記事と SDK で食い違う点は、そちらに明記します。
