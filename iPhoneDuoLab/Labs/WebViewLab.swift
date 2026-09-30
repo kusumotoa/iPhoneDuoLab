@@ -46,6 +46,8 @@ struct WebViewLab: View {
                 WebViewRepresentable(mode: mode).ignoresSafeArea()
             }
         }
+        // WebView の後ろに背景を敷く。safe area の内側に置いたとき、WebView の範囲が見える
+        .background(Color(.systemGray4).ignoresSafeArea())
         .onAppear {
             let args = ProcessInfo.processInfo.arguments
             if let index = args.firstIndex(of: "-webMode"), index + 1 < args.count,
@@ -80,6 +82,9 @@ private struct WebViewRepresentable: UIViewRepresentable {
     }
 
     /// ページの余白を env() で作り、その値と枠の位置を JS から報告します。
+    ///
+    /// 画面いっぱいに行を並べ、左端を赤、右端を青、上端を緑、下端を橙に塗ります。
+    /// バーの下に潜った部分は、その色が消えるので、safe area との関係が一目で分かります。
     private static func html(cover: Bool) -> String {
         let viewport = cover ? "width=device-width, initial-scale=1, viewport-fit=cover" : "width=device-width, initial-scale=1"
         return """
@@ -87,21 +92,36 @@ private struct WebViewRepresentable: UIViewRepresentable {
         <meta name="viewport" content="\(viewport)">
         <style>
           html, body { margin: 0; height: 100%; }
+          /* env() の分だけ内側へ寄せる。その外側には、この縞模様の背景が見える */
           body { background: repeating-linear-gradient(45deg, #f4a, #f4a 12px, #fc6 12px, #fc6 24px); }
-          /* env() の値を、そのまま padding にして枠を内側へ寄せる */
           #frame {
             box-sizing: border-box; height: 100vh;
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
           }
-          #content { background: #fff; height: 100%; font: 11px -apple-system; padding: 4px; box-sizing: border-box; }
-          #probe {
-            position: fixed; visibility: hidden;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-          }
+          #content { height: 100%; width: 100%; overflow: hidden; display: grid; grid-template-rows: repeat(20, 1fr); background: #fff; font: 600 11px/1 -apple-system; }
+          /* 文章が長くても、行が横にはみ出さないようにする（右端の青い列を、必ず右端に置く） */
+          .row { display: flex; align-items: stretch; border-bottom: 1px solid #ccd; min-width: 0; overflow: hidden; }
+          .row:nth-child(even) { background: #eaf3ff; }
+          .l, .r { flex: 0 0 26px; display: flex; align-items: center; justify-content: center; color: #fff; }
+          .l { background: #e33; }
+          .r { background: #26f; }
+          .t { flex: 1 1 0; min-width: 0; overflow: hidden; white-space: nowrap; padding: 0 4px; display: flex; align-items: center; }
+          .top { background: #2a2 !important; color: #fff; }
+          .bottom { background: #f80 !important; color: #fff; }
+          #probe { position: fixed; visibility: hidden;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
         </style></head><body>
         <div id="probe"></div>
-        <div id="frame"><div id="content" id="out"><pre id="out"></pre></div></div>
+        <div id="frame"><div id="content"></div></div>
         <script>
+          const rows = 20, body = document.getElementById('content');
+          for (let i = 0; i < rows; i++) {
+            const row = document.createElement('div');
+            row.className = 'row' + (i === 0 ? ' top' : '') + (i === rows - 1 ? ' bottom' : '');
+            const label = i === 0 ? '▲ 上端' : (i === rows - 1 ? '▼ 下端' : '行 ' + String(i + 1).padStart(2, '0'));
+            row.innerHTML = '<div class="l">左</div><div class="t">' + label + '　ここに文章が入ります。'.repeat(20) + '</div><div class="r">右</div>';
+            body.appendChild(row);
+          }
           function report() {
             const s = getComputedStyle(document.getElementById('probe'));
             const r = document.getElementById('content').getBoundingClientRect();
@@ -110,8 +130,9 @@ private struct WebViewRepresentable: UIViewRepresentable {
               viewport: window.innerWidth + ' × ' + window.innerHeight,
               content: 'x ' + r.left.toFixed(1) + ' → ' + r.right.toFixed(1) + ' / y ' + r.top.toFixed(1) + ' → ' + r.bottom.toFixed(1)
             };
-            document.getElementById('out').textContent =
-              'env top/bottom/left/right\\n' + payload.env + '\\nviewport ' + payload.viewport + '\\ncontent ' + payload.content;
+            // 2 行目に、読み取った値を出す（バーに隠れなければ、画像でも読める）
+            const t = body.children[2].querySelector('.t');
+            t.textContent = 'env ' + payload.env.replaceAll('px', '') + '　viewport ' + payload.viewport;
             window.webkit.messageHandlers.report.postMessage(payload);
           }
           window.addEventListener('load', report);
