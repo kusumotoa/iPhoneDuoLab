@@ -28,6 +28,12 @@ struct ArrangementViewLab: View {
     @State private var clean = false
     /// 検証用: 起動引数 -arrAxis で軸を指定したとき、その値。トグルより優先します。
     @State private var axisOverride: Axis.Set?
+    /// 検証用: ペインを不透明にして、重なりの前後が見えるようにする（`-arrOpaque 1`）。
+    @State private var opaque = false
+    /// 検証用: secondary に `overlayArrangementEdge` を指定する（`-arrEdge top|bottom|leading|trailing`）。
+    @State private var edge: String?
+    /// `overlayArrangementEdge` を付ける場所（`-arrEdgeOn secondary|primary|container`）。既定は secondary。
+    @State private var edgeOn = "secondary"
 
     private var axes: Axis.Set? { axisOverride ?? (constrainAxis ? .vertical : nil) }
 
@@ -58,15 +64,19 @@ struct ArrangementViewLab: View {
         default: axisOverride = nil
         }
         clean = value("-arrClean") == "1"
+        opaque = value("-arrOpaque") == "1"
+        edge = value("-arrEdge")
+        edgeOn = value("-arrEdgeOn") ?? "secondary"
     }
 
     @ViewBuilder
     private var arrangement: some View {
         let view = ArrangementView {
-            pane("primary", color: .blue)
+            edged(ZIndexPane(title: "primary", color: .blue, opaque: opaque), when: "primary")
         } secondary: {
-            pane("secondary", color: .orange)
+            edged(ZIndexPane(title: "secondary", color: .orange, opaque: opaque), when: "secondary")
         }
+        .modifier(EdgeModifier(edge: edgeOn == "container" ? edge : nil))
 
         switch style {
         case .automatic:
@@ -76,6 +86,12 @@ struct ArrangementViewLab: View {
         case .overlay:
             if let axes { view.arrangementViewStyle(.overlay.axes(axes)) } else { view.arrangementViewStyle(.overlay) }
         }
+    }
+
+    /// `-arrEdgeOn` が `place` のときだけ、`overlayArrangementEdge` を付ける。
+    @ViewBuilder
+    private func edged<Content: View>(_ content: Content, when place: String) -> some View {
+        if edgeOn == place { content.modifier(EdgeModifier(edge: edge)) } else { content }
     }
 
     private var controls: some View {
@@ -92,14 +108,45 @@ struct ArrangementViewLab: View {
         }
         .padding()
     }
+}
 
-    private func pane(_ title: String, color: Color) -> some View {
-        color.opacity(0.28)
-            .overlay {
-                Text(title)
-                    .font(.headline)
-                    .foregroundStyle(color)
-            }
+/// `overlayArrangementEdge` を、文字列（top / bottom / leading / trailing）から付ける。
+private struct EdgeModifier: ViewModifier {
+    let edge: String?
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        switch edge {
+        case "top": content.overlayArrangementEdge(VerticalEdge.top)
+        case "bottom": content.overlayArrangementEdge(VerticalEdge.bottom)
+        case "leading": content.overlayArrangementEdge(HorizontalEdge.leading)
+        case "trailing": content.overlayArrangementEdge(HorizontalEdge.trailing)
+        default: content
+        }
+    }
+}
+
+/// ペイン。`overlayArrangementZIndex`（overlay のときの重なり順）を読んで表示・記録する。
+private struct ZIndexPane: View {
+    let title: String
+    let color: Color
+    let opaque: Bool
+    @Environment(\.overlayArrangementZIndex) private var zIndex
+
+    var body: some View {
+        GeometryReader { proxy in
+            color.opacity(opaque ? 0.85 : 0.28)
+                .overlay {
+                    VStack(spacing: 4) {
+                        Text(title).font(.headline)
+                        Text("zIndex \(zIndex)").font(.subheadline.monospacedDigit())
+                    }
+                    .foregroundStyle(opaque ? .white : color)
+                }
+                .onChange(of: zIndex, initial: true) { _, value in
+                    ValueRecorder.shared.merge(["arrangement.\(title).zIndex": "\(value)"])
+                }
+        }
     }
 }
 
