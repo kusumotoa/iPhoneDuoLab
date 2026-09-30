@@ -17,6 +17,7 @@ iPhoneDuoLab/
 │   ├── 05-before-after.md   対応する / しないの比較スクリーンショット
 │   ├── 06-existing-app-migration.md  既存 UIKit アプリで踏んだ不具合と確認ポイント
 │   ├── 07-webview.md        WebView に表示するページの safe area（2 つの対応方法と実測値）
+│   ├── 08-camera-split-check.md  内側カメラを使う app と使わない app が並んだときの、実機での確認手順
 │   ├── 99-checklist.md      移行チェックリスト
 │   ├── 90-sources.md        参照元
 │   └── assets/              図（SVG）
@@ -27,7 +28,7 @@ iPhoneDuoLab/
 │   └── iphone-duo-lab/      docs を AI 向けにまとめた Claude Code スキル
 └── tools/
     ├── DuoCompare/          SDK 別ビルドの比較用アプリ（swiftc 直ビルド）
-    └── measure/             測定用スクリプト（Lab の値の読み出し、撮影、画素からの寸法測定）
+    └── measure/             測定用スクリプト（Lab の値の読み出し、撮影、画素からの寸法測定、実機へ 2 つの app を入れる）
 ```
 
 ## AI から使う（Claude Code スキル）

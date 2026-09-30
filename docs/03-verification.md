@@ -163,6 +163,7 @@ AXStaticText desc=T 82  B 34
 | `ReservedRegionsLab` | `reservedRegions` | 予約領域の可視化 | `-regionsInactive 0|1` |
 | `WebViewLab` | `webView` | WebView の safe area | `-webMode 0〜4` |
 | `CameraProbeLab` | `cameraProbe` | シミュレータでのカメラの有無 | `-camera inner|outer` |
+| `CameraSplitLab` | `cameraSplit` | 内側カメラを使う app と使わない app が並んだときの `isActive`（実機用。手順は [08-camera-split-check.md](08-camera-split-check.md)） | `-cameraSplitRole camera|observer`、`-cameraSplitAutoStart 1` |
 
 `-lab` を付けて起動した Lab は、値を `Documents/api-values.json` に書き出します。
 
