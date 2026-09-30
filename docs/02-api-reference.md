@@ -38,7 +38,24 @@
 
 ### 6 姿勢の基本値
 
-`NavigationStack` の中で読んだ値。上部の 82pt は、ステータスバーとナビゲーションバーです。
+画面に、値の範囲を重ねて撮りました（`-annot 1`）。
+
+| 印 | 意味 |
+| --- | --- |
+| 赤い帯 | safe area（数字は pt） |
+| 青い帯 | `contentMargins(for: .container)`（数字は pt） |
+| 赤紫の帯 | 折り目（`.division`）。ラベルに「非」とあれば非アクティブ |
+| 灰色の枠 | カメラなど（`.occlusion`）。破線は非アクティブ |
+
+| closed / portrait | closed / landscape（バーが右） | closed / landscape（バーが左） |
+| --- | --- | --- |
+| <img src="assets/shots/annot/safearea-closed-portrait.png" width="200"> | <img src="assets/shots/annot/safearea-closed-landscape-right.png" width="200"> | <img src="assets/shots/annot/safearea-closed-landscape-left.png" width="200"> |
+
+| open / portrait | open / landscape | partial / portrait | partial / landscape |
+| --- | --- | --- | --- |
+| <img src="assets/shots/annot/safearea-open-portrait.png" width="200"> | <img src="assets/shots/annot/safearea-open-landscape.png" width="200"> | <img src="assets/shots/annot/safearea-partial-portrait.png" width="200"> | <img src="assets/shots/annot/safearea-partial-landscape.png" width="200"> |
+
+上部の 82pt は、ステータスバーとナビゲーションバーです。表は `NavigationStack` の中で読んだ値です。
 
 | 姿勢 | `GeometryReader` の size | size class（h / v） | `toolbarVerticalEdge` | safe area |
 | --- | --- | --- | --- | --- |
@@ -119,6 +136,8 @@ func axes(_ axes: Axis.Set) -> SplitArrangementViewStyle
 青い primary と橙の secondary を入れて、各ペインの範囲を画素から測りました（pt、**画面の左上が原点**。`GeometryReader` の座標にするには、y から 82 を引く）。
 
 **P** = primary、**S** = secondary、**単** = primary だけ、**重** = 全面で重なる。
+
+画像の印: 青の枠が primary、橙の枠が secondary、赤い帯がペイン間の隙間です。数字は pt（幅 × 高さ）。灰色の 1 枚は、2 つが重なっています。
 
 **`.split`（`.automatic` も同じ結果）**
 
@@ -263,6 +282,16 @@ UIKit 側は `UIView.reservedRegions(kind:options:)` で、`layoutDirectionBehav
 
 ### 実測: 領域の位置と margins
 
+灰色の枠がカメラなど、赤紫の帯が折り目です（凡例は[基本値](#6-姿勢の基本値)）。**partial だけ、折り目が実線（アクティブ）**で、open では「非」、closed では出ません。
+
+| closed / portrait | closed / landscape（バーが右） | closed / landscape（バーが左） |
+| --- | --- | --- |
+| <img src="assets/shots/annot/safearea-closed-portrait.png" width="200"> | <img src="assets/shots/annot/safearea-closed-landscape-right.png" width="200"> | <img src="assets/shots/annot/safearea-closed-landscape-left.png" width="200"> |
+
+| open / portrait | open / landscape | partial / portrait | partial / landscape |
+| --- | --- | --- | --- |
+| <img src="assets/shots/annot/safearea-open-portrait.png" width="200"> | <img src="assets/shots/annot/safearea-open-landscape.png" width="200"> | <img src="assets/shots/annot/safearea-partial-portrait.png" width="200"> | <img src="assets/shots/annot/safearea-partial-landscape.png" width="200"> |
+
 `frame` は **margins を含む**矩形です（UIKit ヘッダ）。実体は `frame` から `margins` を引いたもの。折り目は、実体の幅が 0 で、`frame` の 40pt は左右（または上下）の margins 20pt ずつです。
 
 `.includeInactive` を付けた全件です（`GeometryProxy` の座標、`(x, y) 幅×高さ`、`m[]` は margins、**A** = アクティブ、**非** = 非アクティブ）。`.occlusion` の margins は全件 0。
@@ -342,6 +371,10 @@ struct DeviceHingeContext: Equatable, Sendable {
 UIKit 側は `UIHinge`（`status` / `angle: CGFloat`。**単位は radians** です）と `UIHingeInteraction`（`init(updateHandler:)`、`isEnabled`、`Update.hinge: UIHinge?`）です。
 
 ### 実測: 通知の中身と、状態が切り替わる角度
+
+<img src="assets/hinge-thresholds.svg" width="720">
+
+**status が切り替わる角度は、開くときと閉じるときで違います。** 赤い破線の範囲は、通知が飛んだ間隔です。
 
 姿勢ボタンで動かしながら、`onHingeChange` の通知をすべて記録しました。
 
@@ -474,7 +507,7 @@ UIKit は `traitCollection.verticalBarEdge` です。型は `UIVerticalBarEdge` 
 | **open / landscape** | **partial / portrait** | **partial / landscape** |
 | <img src="assets/shots/toolbar/notpinned-open-landscape.png" width="200"> | <img src="assets/shots/toolbar/notpinned-partial-portrait.png" width="200"> | <img src="assets/shots/toolbar/notpinned-partial-landscape.png" width="200"> |
 
-各画面の中央にある「toolbarVerticalEdge」の行が、その姿勢で読めた値です。
+橙の帯が垂直バー（幅 84pt）です。**帯の中に移った項目が、垂直バーの項目**で、帯の外に残った項目は水平バーです。各画面の中央にある「toolbarVerticalEdge」の行が、その姿勢で読めた値です。
 
 | 姿勢 | `toolbarVerticalEdge` | `verticalBarEdge` |
 | --- | --- | --- |
@@ -597,6 +630,16 @@ UIKit には `UIView.LayoutRegion`（iOS 26.0）があります。safe area、la
 
 ### 実測: `contentMargins(for:edges:)` が返す値
 
+青い帯が返り値です。**バーのある辺は 0**、それ以外の左右は 20pt。
+
+| closed / portrait | closed / landscape（バーが右） | closed / landscape（バーが左） |
+| --- | --- | --- |
+| <img src="assets/shots/annot/safearea-closed-portrait.png" width="200"> | <img src="assets/shots/annot/safearea-closed-landscape-right.png" width="200"> | <img src="assets/shots/annot/safearea-closed-landscape-left.png" width="200"> |
+
+| open / portrait | open / landscape | partial / portrait | partial / landscape |
+| --- | --- | --- | --- |
+| <img src="assets/shots/annot/safearea-open-portrait.png" width="200"> | <img src="assets/shots/annot/safearea-open-landscape.png" width="200"> | <img src="assets/shots/annot/safearea-partial-portrait.png" width="200"> | <img src="assets/shots/annot/safearea-partial-landscape.png" width="200"> |
+
 `GeometryProxy.contentMargins(for: .container, edges:)` の返り値です（top / bottom / leading / trailing、pt）。
 
 | 姿勢 | `.all` と `.horizontal` | `.leading` | `.trailing` | `.top` / `.bottom` / `.vertical` |
@@ -626,6 +669,8 @@ UIKit の `layoutMargins` との比較です。
 
 ### 実測: `View.contentMargins(for:edges:alignment:)` の効果
 画面を撮って、画素から測った x の範囲です（pt、画面の左端が 0）。対象は、青い `Color` を全面に広げたビューです。
+
+画像の印は[基本値](#6-姿勢の基本値)と同じです（赤 = safe area、青い帯 = `contentMargins`）。**面の青い `Color` が、青い帯の内側に収まっているか、帯や赤い帯の下まで広がっているか**を見てください。
 
 **修飾子なし**
 
@@ -713,6 +758,8 @@ iOS 18 の `.tabViewStyle(.sidebarAdaptable)` も SDK に残っています。�
 
 ### 実測: シートの大きさと位置
 シートの中から `GeometryReader` で読んだ大きさです（`幅 × 高さ`、括弧は safe area の top / bottom / leading / trailing）。
+
+画像の印: **紫の枠がシート全体**（下の「シート W × H」は safe area を含む）、赤い帯がシートの中の safe area、赤紫の帯が折り目です。表の大きさは、safe area を引いた内側です（例: 374 + 76 = 450）。
 
 **素のシート**
 
@@ -901,7 +948,7 @@ UIBackgroundExtensionView          // UIKit
 内側ディスプレイでは、centered / leading 配置なら水平バーになり、trailing 配置なら垂直バーになります。地図のように、背後のコンテンツを広く見せたい場合に使います。
 
 ### 実測: 配置ごとのシートの大きさ
-`.presentationPlacement(_:)` の 4 値での、`NavigationStack` 入りシートの大きさです（括弧は safe area の trailing）。
+`.presentationPlacement(_:)` の 4 値での、`NavigationStack` 入りシートの大きさです（括弧は safe area の trailing）。紫の枠がシート全体、赤い帯が safe area です（凡例は[シートの大きさ](#実測-シートの大きさと位置)）。
 
 **`.presentationPlacement(.automatic)`**
 
@@ -984,6 +1031,8 @@ view.cornerConfiguration = .uniformCorners(radius: .containerConcentric(minimum:
 ```
 
 ### 実測: `edgeInsets(for:)` の値
+
+<img src="assets/edge-insets.svg" width="720">
 
 `view.edgeInsets(for:)` の値です（`UIEdgeInsets`、top / bottom / **left / right**、pt）。画面全体に広げた view で読みました。
 

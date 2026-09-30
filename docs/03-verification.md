@@ -165,6 +165,8 @@ AXStaticText desc=T 82  B 34
 | `CameraProbeLab` | `cameraProbe` | シミュレータでのカメラの有無 | `-camera inner|outer` |
 | `CameraSplitLab` | `cameraSplit` | 内側カメラを使う app と使わない app が並んだときの `isActive`（実機用。手順は [08-camera-split-check.md](08-camera-split-check.md)） | `-cameraSplitRole camera|observer`、`-cameraSplitAutoStart 1` |
 
+**`-annot 1`** を付けると、どの Lab の上にも safe area（赤）・`contentMargins`（青）・予約領域（灰と赤紫）が数字つきで重なります。docs の「印つき」の画像は、これで撮りました（`Labs/Annotation.swift`）。
+
 `-lab` を付けて起動した Lab は、値を `Documents/api-values.json` に書き出します。
 
 ```sh

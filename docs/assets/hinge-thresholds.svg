@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" width="900" height="340" font-family="-apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif">
+  <style>
+    .bg{fill:#fff}
+    .t{fill:#1a1a1a;font-size:14px;font-weight:600}
+    .n{fill:#5b636e;font-size:12px}
+    .v{fill:#1a1a1a;font-size:12px;font-weight:600}
+    .ax{stroke:#3d434d;stroke-width:1.5}
+    .tick{stroke:#9aa2ad;stroke-width:1}
+    .closed{fill:#cfe3ff;stroke:#2f6fdb}
+    .part{fill:#d9f0d3;stroke:#3a9a2a}
+    .open{fill:#ffe0c2;stroke:#e07a10}
+    .gap{fill:#fff;stroke:#c0392b;stroke-dasharray:4 3}
+  </style>
+  <rect class="bg" width="900" height="340"/>
+  <text class="t" x="30" y="28">ヒンジ角度と status（シミュレータで動かして記録した通知）</text>
+  <!-- 軸: 0° = x60, 180° = x860 (4.444px/deg) -->
+  <line class="ax" x1="60" y1="278" x2="860" y2="278"/>
+  <g class="tick">
+    <line x1="60" y1="273" x2="60" y2="283"/><line x1="282" y1="273" x2="282" y2="283"/>
+    <line x1="504" y1="273" x2="504" y2="283"/><line x1="727" y1="273" x2="727" y2="283"/>
+    <line x1="860" y1="273" x2="860" y2="283"/>
+  </g>
+  <g class="n" text-anchor="middle">
+    <text x="60" y="300">0°</text><text x="282" y="300">50°</text><text x="504" y="300">100°</text>
+    <text x="727" y="300">150°</text><text x="860" y="300">180°</text>
+  </g>
+  <!-- 行 1: 止まる姿勢 -->
+  <text class="v" x="30" y="62">止まる姿勢</text>
+  <circle cx="60" cy="90" r="7" class="closed"/><text class="n" x="60" y="115" text-anchor="middle">closed 0.0°</text>
+  <circle cx="626" cy="90" r="7" class="part"/><text class="n" x="626" y="115" text-anchor="middle">partial 約 128°</text>
+  <circle cx="860" cy="90" r="7" class="open"/><text class="n" x="860" y="115" text-anchor="middle">open 180.0°</text>
+  <!-- 行 2: 開くとき（x = 60 + 度 × 4.444） -->
+  <text class="v" x="30" y="150">開くとき</text>
+  <rect class="closed" x="60" y="160" width="22" height="26"/>
+  <rect class="gap" x="82" y="160" width="195" height="26"/>
+  <rect class="part" x="277" y="160" width="559" height="26"/>
+  <rect class="gap" x="836" y="160" width="24" height="26"/>
+  <circle cx="860" cy="173" r="6" class="open"/>
+  <text class="n" x="180" y="205" text-anchor="middle">5.0〜48.8° のどこかで closed → partiallyOpen</text>
+  <text class="n" x="836" y="205" text-anchor="middle">174.7° まで partiallyOpen</text>
+  <!-- 行 3: 閉じるとき -->
+  <text class="v" x="30" y="225">閉じるとき</text>
+  <rect class="closed" x="60" y="234" width="367" height="26"/>
+  <rect class="gap" x="427" y="234" width="48" height="26"/>
+  <rect class="part" x="475" y="234" width="294" height="26"/>
+  <rect class="gap" x="769" y="234" width="91" height="26"/>
+  <circle cx="860" cy="247" r="6" class="open"/>
+  <!-- 凡例 -->
+  <g transform="translate(30,322)">
+    <rect class="closed" x="0" y="-10" width="14" height="10"/><text class="n" x="20" y="0">closed</text>
+    <rect class="part" x="90" y="-10" width="14" height="10"/><text class="n" x="110" y="0">partiallyOpen</text>
+    <circle cx="228" cy="-5" r="6" class="open"/><text class="n" x="240" y="0">fullyOpen（180.0° のときだけ）</text>
+    <rect class="gap" x="450" y="-10" width="30" height="10"/><text class="n" x="488" y="0">通知が飛んだ範囲（この間のどこかで status が変わる）</text>
+  </g>
+</svg>
