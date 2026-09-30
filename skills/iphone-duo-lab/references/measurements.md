@@ -41,7 +41,7 @@ iPhone Duo シミュレータ（iOS 27.1、Xcode 27.1 Beta）で測った値で�
 
 - **`contentMargins(for: .container, edges:)`（`GeometryProxy`）**: 水平方向だけ値がある。leading は常に 20、trailing は 20（バーが trailing にあるときだけ 0）。垂直方向は常に 0。`.all` と `.horizontal` は同じ値。UIKit の `layoutMargins` から safe area を引いた値（= `systemMinimumLayoutMargins`）
 - **`View.contentMargins(for:edges:alignment:)`**: 全面に広げたビューを、その margin の分だけ内側へ寄せる。`.ignoresSafeArea()` と組み合わせても margin は残り、順序は結果に影響しない。固定サイズのビューは動かない。`alignment` の効果は確認できなかった
-- **`ArrangementView`**: `.split` は landscape で左右、portrait で上下に分ける（closed / landscape は分けず primary だけ）。partial では 2 つの間に 40pt の空きができる。`axes` は、portrait で `.vertical`、landscape で `.horizontal` だけが効く。`.overlay` は、折り目のない姿勢では全面で重なり、partial だけ分かれて、**secondary が左（縦なら上）、primary が右（縦なら下）** に来る
+- **`ArrangementView`**: `.split` は landscape で左右、portrait で上下に分ける（closed / landscape は分けず primary だけ）。partial では 2 つの間に 40pt の空きができる。`axes` は、portrait で `.vertical`、landscape で `.horizontal` だけが効く。`.overlay` は、折り目のない姿勢では全面で重なり、**primary（zIndex 1）が手前に浮き、secondary（zIndex 0）が背景**になる。partial だけ分かれて、**secondary が左（縦なら上）、primary が右（縦なら下）** に来る（zIndex は両方 0）。zIndex はペインの根のビューでは常に 0 なので、子ビューで読む
 - **`ReservedRegion`**: `frame` は margins を含む矩形。折り目は実体の幅が 0 で、frame の 40pt は左右（または上下）の margins 20pt ずつ。SwiftUI と UIKit は同じ矩形を返す（UIKit の座標は、SwiftUI に safe area の top / leading を足す）
 - **ヒンジ**: 最初の通知は `oldContext.hinge == nil`。`status` が切り替わる角度は、開くときと閉じるときで違う（開くとき closed は 19.4° まで・partiallyOpen は 22.6° から、閉じるとき partiallyOpen は 93.5° まで・closed は 82.7° から）。`fullyOpen` は 180.0° のときだけ。UIKit の `UIHinge.angle` は radians。止まったあと、同じ値の通知が続けて届くことがある
 - **ツールバー**: 垂直バーが出る姿勢では、シンボルの項目と下部バーの項目が垂直バーへ移り、テキストの項目と `.horizontalOnly` の項目は水平に残る。`.toolbarVerticalBehavior(.disabled)` で、すべて水平のままになり、`toolbarVerticalEdge` は nil になる

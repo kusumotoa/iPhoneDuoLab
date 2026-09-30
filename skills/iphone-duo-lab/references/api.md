@@ -42,7 +42,7 @@ ArrangementView {
 | `.overlay` | `OverlayArrangementViewStyle` | あり |
 
 - split: landscape では左右（`.horizontal`）、portrait では上下（`.vertical`）に分割。closed / landscape は分けず primary だけ。`axes` で軸を制限でき、その姿勢で使えない軸を指定すると単一ビュー（primary だけ）になる。折り目があると、2 つの間に 40pt の空きができる
-- overlay: 通常は primary が secondary の上に重なる。部分的に開くと横並びを優先し、primary が折り目に対して trailing / bottom 側、secondary が leading / top 側になる
+- overlay: 折らない姿勢では、**primary が手前に浮き（固定サイズならカードとして左上）、secondary が背景を全面で埋める**。部分的に開くと横並びを優先し、既定では primary が trailing / bottom 側、secondary が leading / top 側になる。`overlayArrangementEdge`（primary に付ける）は partial で primary の側を決める（`.top` / `.leading` で primary が上・左、`.bottom` / `.trailing` は下・右に 2 つが重なったまま）。折らない姿勢では、辺を付けてもカードの位置は変わらない。secondary が浮く表示は再現できていない
 - 移行の目安: `HStack` / `VStack` → split、`ZStack` → overlay
 
 レイアウトの制御（すべて iOS 27.1）:
@@ -59,7 +59,7 @@ func overlayArrangementEdge(_ edge: HorizontalEdge?) -> some View
 func overlayArrangementEdge(_ edge: VerticalEdge?) -> some View
 
 extension EnvironmentValues {
-    var overlayArrangementZIndex: Int { get set }   // 0 より大きいかで縮小表示と展開表示を切り替える
+    var overlayArrangementZIndex: Int { get set }   // 折らない姿勢で primary が 1、secondary が 0。partial は両方 0。0 より大きいかで縮小表示と展開表示を切り替える。ペインの根のビューでは常に 0 なので、子ビューで読む
 }
 ```
 
