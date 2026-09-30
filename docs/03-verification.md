@@ -13,7 +13,7 @@ iPhone Duo シミュレータ（iOS 27.1）と Xcode 27.1 Beta で実際に確�
 
 従来の iPhone（おおむね 0.46 前後）と比べると、どちらも正方形に近い比率です。「外側ディスプレイは従来より横長」という記述は、この数値と一致します。
 
-シミュレータには Display class 0 のポートが 2 つ見えており、スクリーンショットは撮り分けられます。
+シミュレータには Display のポートが複数見えます。そのうち、1398 × 2034 が外側、2007 × 2853 が内側で、スクリーンショットは撮り分けられます。
 
 ```sh
 xcrun simctl io <udid> enumerate                      # ポートと UUID の一覧
@@ -64,76 +64,146 @@ Xcode 27 のバンドルに `Simulator.app` はありません。`DeviceHub.app`
 /Applications/Xcode-27.1.0-Beta.app/Contents/Applications/DeviceHub.app
 ```
 
-旧 Xcode の `Simulator.app` が同時に起動していると、どちらのウィンドウを操作しているのか紛らわしくなります。DeviceHub にはデバイス一覧のウィンドウもあります。姿勢コントロールがあるのは、デバイス画面を表示しているウィンドウです。
+旧 Xcode の `Simulator.app` が同時に起動していると、どちらのウィンドウを操作しているのか紛らわしくなります。DeviceHub にはデバイス一覧のウィンドウもあります。姿勢のボタンがあるのは、デバイスの画面を表示しているウィンドウです。
 
-### 姿勢はヒンジ角度のスライダーで変える
+**別の Xcode で作業しながら 27.1 を使う場合**は、`xcode-select` を切り替えず、コマンドごとに `DEVELOPER_DIR` を指定します。別の作業の Xcode に影響しません。
 
-デバイスウィンドウの下部バー右端にあるスライダーが、姿勢コントロールです。値域は 0〜180 度で、そのまま `DeviceHinge.angle` に対応します。
+```sh
+export DEVELOPER_DIR=/Applications/Xcode-27.1.0-Beta.app/Contents/Developer
+xcodebuild -project iPhoneDuoLab.xcodeproj -scheme iPhoneDuoLab \
+  -destination "id=<iPhone Duo の UDID>" -derivedDataPath /tmp/duolab-dd build
+xcrun simctl install <UDID> /tmp/duolab-dd/Build/Products/Debug-iphonesimulator/iPhoneDuoLab.app
+```
 
-| 値 | 姿勢 |
+DeviceHub で、すでに別のシミュレータを表示しているウィンドウがあるときは、そのウィンドウの表示を切り替えないでください。`File > New Window` で新しいウィンドウを開き、サイドバーで iPhone Duo を選びます。
+
+### 姿勢は下部バーのボタンで変える
+
+デバイスウィンドウの下部バーには、左から次のボタンがあります。
+
+| ボタン | 役割 |
 | --- | --- |
-| 0 | closed |
-| 中間（実測 127.5 付近） | partially folded |
-| 180 | fully open |
+| グリッド | アプリの切り替え |
+| カメラ | スクリーンショット |
+| 丸 | 録画 |
+| **回転** | 画面の向きを変える |
+| **電話型** | closed（閉じる） |
+| **本型** | partial（部分的に折る） |
+| **平らな画面** | open（完全に開く） |
 
-連続値のスライダーなので、折り具合を任意の角度に設定できます。下部バーの他の 4 ボタンは、左から App Switcher / スクリーンショット / 録画 / Enter Resize Mode です。姿勢とは関係ありません。
+3 つの姿勢ボタンで作れる姿勢と、そのときのヒンジの値です。
 
-解説資料（d-date/iphone-duo-skill）には「ヒンジ角度のほかに closed / open / book / laptop / tent の姿勢を選べる」とあります。この環境では、スライダー以外の姿勢プリセットを見つけられていません。メニュー・下部バー・上部ツールバーは AX で確認済みで、More Actions メニューの中は未確認です。
+| ボタン | ヒンジの状態 | 角度 |
+| --- | --- | --- |
+| 電話型 | closed | 0.0° |
+| 本型 | partiallyOpen | 約 128°（127.5〜128.0°） |
+| 平らな画面 | fullyOpen | 180.0° |
 
-確認のときは、姿勢そのものに加えて、姿勢から姿勢へ移る途中の表示も見てください。スライダーを少しずつ動かすと、途中の状態を作れます。シミュレータで再現できないのは、内側と外側を同時に点灯させる状態だけです（カメラが必要なため）。
+- 以前のこの文書の記録には、0〜180 度のスライダーがあるとありました。この DeviceHub（Xcode 27.1 Beta 27A9269）の下部バーには、スライダーが見当たりません
+- 以前の記録では、下部バーの 4 番目のボタンを Enter Resize Mode としていました。この環境では、4 番目のボタンを押すと、画面の向きが 90° 回りました
+- そのため、角度を途中で止めることはできません。ボタンを押すと、角度が遷移のアニメーションで動き、途中の値が `onHingeChange` に届きます（[02-api-reference.md](02-api-reference.md) の「実測: 通知の中身と、状態が切り替わる角度」）
+- メニューに姿勢を変える項目はありません。Controls メニューにあるのは Home / Lock / Siri / App Switcher / Action Button / Screenshot / Record Screen だけです。`simctl` にも該当する手段はありません
+- シミュレータで再現できないのは、内側と外側を同時に点灯させる状態と、カメラが動作している状態です（カメラが 1 台もないため）
 
-メニューに姿勢を変える項目はありません。Controls メニューにあるのは Home / Lock / Siri / App Switcher / Action Button / Screenshot / Record Screen だけで、回転の項目もありません。`simctl` にも該当する手段はありません。
+姿勢ボタンと回転ボタンは、座標を指定したクリックで押せます。バックグラウンドのクリックは、ウィンドウの一部が Dock などに隠れているとき、拒否されます。その場合は、ウィンドウを前面に出して押します。
 
-### 自動操作するときの手順
+### 回転ボタンは 4 つの向きを通る
 
-AX で `AXValue` を設定しても効きません。値は書き換わったように見えますが、シミュレータには反映されませんでした。実際のマウスドラッグが必要です。
+回転ボタンを押すたびに、画面の向きが 90° ずつ変わり、4 回で一周します。**上下が逆になった向きも通ります。**
 
-```swift
-// CGEvent で実際にドラッグする（tools/ に drag.swift として置いてあります）
-post(.leftMouseDown, from); /* 補間しながら */ post(.leftMouseDragged, p); post(.leftMouseUp, to)
-```
+押したときの向きの移り変わりを記録しました。
 
-スライダーの座標は AX から取れます。
+| 押す前 | 押した後 |
+| --- | --- |
+| 上下が逆の portrait（バーが左、文字が逆さまに見える） | landscape（バーが左） |
+| landscape（バーが左） | portrait（バーが右。通常の向き） |
+| portrait（バーが右。通常の向き） | landscape（バーが右） |
 
-```applescript
-tell application "System Events" to tell process "DeviceHub"
-  repeat with e in (entire contents of window 1)
-    if (role of e) is "AXSlider" then
-      if (value of attribute "AXMaxValue" of e) = 180.0 then
-        -- position と size からトラックの両端を計算する
-      end if
-    end if
-  end repeat
-end tell
-```
+3 つは直接確かめた移り変わりです。残る「landscape（バーが右）→ 上下が逆の portrait」は、4 回で一周することからの推定で、直接は見ていません。
 
-### スクリーンショットを撮らなくても値が読める
+- **どの向きにいるかは、値で確かめてください。** closed では `verticalBarEdge`（portrait でバーが右なら通常の向き、左なら上下が逆）、内側ディスプレイでは内側カメラの領域の位置（[02-api-reference.md](02-api-reference.md) の「端末の向きによる違い」）が目印になります
+- `simctl io screenshot` で撮った画像は、上下が逆の向きで撮っても、文字が読める向きで保存されます。**画像の見た目だけでは、撮った向きが分かりません**
+- 姿勢ボタンを押した直後の向きは、直前の向きで決まります。毎回同じ向きになるとは限りません
+- 測定や撮影の前に、向きを確かめる習慣をつけてください。測定のあとは、通常の向き（closed / portrait でバーが右）に戻しておきます
 
-DeviceHub の AX ツリーには、シミュレータ内で動いているアプリの要素がそのまま現れます。`AXStaticText` の description にアプリが表示しているテキストが入るので、画像を読まずに実測値を取れます。
+### 自動操作するときの注意
+
+- 内側ディスプレイにはタッチが届きません（以前の記録）。開いた状態では tap も scroll も成功を返しますが、何も起きません。回避策は、起動引数で目的の画面を直接開くことです（下の「測定の方法」）
+- `simctl io <udid> enumerate` のディスプレイ UUID は、姿勢が変わるたびに変わることがあります。スクリーンショットのたびに引き直してください
+- 閉じた状態では内側ディスプレイが消灯しているので、`screenshot` を `--display` 指定なしで撮ると、真っ黒な画像になります
+- 同じシミュレータを、複数のセッションで同時に操作しないでください。ディスプレイ UUID が勝手に変わっていたら、誰かが端末を折っています
+- sim-use は内側ディスプレイで向きを誤判定します（"assuming portrait"）。`Group` 要素の w×h が正しい向きです
+
+### 画面のテキストで値を読む
+
+DeviceHub の AX ツリーには、シミュレータ内で動いているアプリの要素がそのまま現れます。`AXStaticText` の description にアプリが表示しているテキストが入るので、画像を読まずに値を取れます。
 
 ```
 AXStaticText desc=867 × 553
 AXStaticText desc=regular / regular
 AXStaticText desc=T 82  B 34
-AXStaticText desc=L 0  Tr 84
-AXButton desc=共有 / お気に入り / 前へ / 次へ
 ```
 
-数値を読み違えることがないため、計測にはこちらが確実です。
+ただし、アプリの AX ツリーは大きく、取得に時間がかかります。**この文書の測定では、代わりに Lab がアプリのコンテナへ JSON を書き出し、`simctl get_app_container` で読む方法を使いました**（下の「測定の方法」）。
 
-### 複数セッションで同時に触らないこと
+## 測定の方法
 
-ディスプレイ UUID は姿勢が変わるたびに変わります。UUID が勝手に変わっていたら、誰かが端末を折っています。自動操作を複数並行させると、撮影の合間に別の操作が挟まり、画像が当てにならなくなります。相手の作業も壊します。
+### 使った Lab と起動引数
 
-### 自動操作するときの注意
+すべての Lab は `-lab <名前>` で直接開けます。内側ディスプレイにはタッチが届かないので、起動引数で目的の画面を出しておきます。
 
-- 内側ディスプレイにはタッチが届きません。開いた状態では tap も scroll も成功を返しますが、何も起きません。回避策は、閉じた状態で画面遷移とスクロール位置を作ってから折ることです。読み取りは全ポーズで動きます
-- 折ると強制的に landscape になります。partially folded / portrait を作るには、折ってから回転させます
-- `simctl io <udid> enumerate` のディスプレイ UUID は、折るたびに変わります。スクリーンショットのたびに引き直してください
+| Lab | `-lab` | 何を測るか | 追加の起動引数 |
+| --- | --- | --- | --- |
+| `APIValuesLab` | `apiValues` | SwiftUI の値（safe area、`contentMargins`、予約領域、ヒンジ） | `-hingeNoState 1`（通知で `@State` を更新しない） |
+| `UIKitValuesLab` | `uikitValues` | UIKit の値（`layoutMargins`、`LayoutRegion`、予約領域、`UIHingeInteraction`） | |
+| `MarginProbeLab` | `marginProbe` | `View.contentMargins` の効果 | `-probeMode 0〜12` |
+| `ArrangementViewLab` | `arrangement` | ペインの位置 | `-arrStyle automatic|split|overlay`、`-arrAxis vertical|horizontal`、`-arrClean 1` |
+| `ToolbarLab` | `toolbar` | 項目の移り方 | `-toolbarDisabled 0|1`、`-toolbarPinned 0|1` |
+| `SheetLab` | `sheet` | シートの大きさと位置 | `-sheet plain|nav|wide|alert|place-automatic|place-leading|place-center|place-trailing` |
+| `ReservedRegionsLab` | `reservedRegions` | 予約領域の可視化 | `-regionsInactive 0|1` |
+| `WebViewLab` | `webView` | WebView の safe area | `-webMode 0〜4` |
+| `CameraProbeLab` | `cameraProbe` | シミュレータでのカメラの有無 | `-camera inner|outer` |
+
+`-lab` を付けて起動した Lab は、値を `Documents/api-values.json` に書き出します。
+
+```sh
+DATA=$(xcrun simctl get_app_container <UDID> com.kusumotoa.iPhoneDuoLab data)
+xcrun simctl launch <UDID> com.kusumotoa.iPhoneDuoLab -lab apiValues
+sleep 3
+cat "$DATA/Documents/api-values.json"
+```
+
+### 測定に使ったスクリプト
+
+`tools/measure/` に、測定に使ったスクリプトを置いてあります。`DEVELOPER_DIR` には 27.1 を、iPhone Duo の UDID には、見つかったシミュレータを自動で使います（環境変数 `DUO_UDID` で上書きできます）。
+
+| スクリプト | 役割 |
+| --- | --- |
+| `read-lab.sh <名前> [引数...]` | Lab を起動し、書き出された JSON を表示する |
+| `orient.sh` | 現在の姿勢と向きを出す。測定や撮影の前に使う |
+| `shot.sh <出力パス>` | 内側・外側の両ディスプレイを撮る |
+| `bbox.py <画像> <色>` | 指定した色の外接矩形を、pt で出す（`uv run --with pillow --with numpy` で実行） |
+
+```sh
+cd tools/measure
+./orient.sh                                   # 向きを確かめる
+./read-lab.sh apiValues                       # SwiftUI の値
+./read-lab.sh sheet -sheet place-trailing     # 起動引数つき
+```
+
+### 位置は frame ではなく、画像の画素で測る
+
+**`onGeometryChange` で読んだ frame は、`.ignoresSafeArea()` や `.contentMargins(for:)` による見た目の変化を反映しません。** たとえば、x 20–867 に描かれたビューの frame が、`0–867` と報告されました。最初に frame で測ったときは、修飾子が効いていないように見えました。
+
+ビューの位置を測るときは、そのビューに固有の色を付けて、スクリーンショットの画素から外接矩形を求めます。この文書の `ArrangementView`、`contentMargins`、シートの位置は、この方法で測りました。単位は、画像のピクセルを 3 で割った pt です。
+
+### WebView の測定
+
+WebKit の初回の起動には、3〜6 秒かかりました。起動して 3 秒後に読むと、ページの値が空でした。7 秒待つと安定しました。
 
 ## 6 つのポーズでの実測値
 
-iPhone Duo シミュレータ（iOS 27.1）で `PoseInspectorLab` を開いて読んだ値です。
+`PoseInspectorLab` と `APIValuesLab` で読んだ値です。姿勢の呼び方と、基本の値は、[02-api-reference.md](02-api-reference.md) の「実測の前提と読み方」にまとめてあります。
 
 ### ディスプレイ諸元
 
@@ -162,7 +232,8 @@ vertical が compact になるのは closed / landscape だけです。内側は
 | ポーズ | safe area | content margins | toolbarVerticalEdge |
 | --- | --- | --- | --- |
 | closed / portrait | 82 / 34 / 0 / **84** | 0 / 0 / **20** / 0 | **trailing** |
-| closed / landscape（右回転） | 82 / 34 / **84** / 0 | 0 / 0 / 0 / **20** | **leading** |
+| closed / landscape（バーが右） | 82 / 34 / 0 / **84** | 0 / 0 / **20** / 0 | **trailing** |
+| closed / landscape（バーが左） | 82 / 34 / **84** / 0 | 0 / 0 / 0 / **20** | **leading** |
 | fully open / portrait | 82 / 34 / 0 / 0 | 0 / 0 / 20 / 20 | **nil（水平バー）** |
 | fully open / landscape | 82 / 34 / 0 / **84** | 0 / 0 / 20 / 0 | **trailing** |
 | partially folded / portrait | 82 / 34 / 0 / 0 | 0 / 0 / 20 / 20 | **nil（水平バー）** |
@@ -172,23 +243,22 @@ vertical が compact になるのは closed / landscape だけです。内側は
 
 ### ヒンジと予約領域
 
-| ポーズ | hinge status | angle | division | occlusion |
+| ポーズ | hinge status | angle | division（アクティブ） | occlusion（アクティブ） |
 | --- | --- | --- | --- | --- |
-| closed / portrait | closed | 0.0° | 0 | 2 |
-| closed / landscape | closed | 0.0° | 0 | 2 |
-| fully open / portrait | fullyOpen | 180.0° | 0 | （未計測） |
-| fully open / landscape | fullyOpen | 180.0° | 0 | 1 |
-| partially folded / portrait | partiallyOpen | 127.5° | **1** | 1 |
-| partially folded / landscape | partiallyOpen | 127.5° | **1** | 1 |
+| closed | closed | 0.0° | 0 | 2 |
+| fully open | fullyOpen | 180.0° | 0（非アクティブが 1） | 1（非アクティブが 1） |
+| partially folded | partiallyOpen | 約 128°（127.5〜128.0°） | **1** | 1（非アクティブが 1） |
+
+件数と、status・角度は、向き（portrait / landscape）で変わりません。アクティブな `.occlusion` の大きさは、向きで変わります（portrait では 134×82、landscape では 84×120）。領域の位置と大きさは、[02-api-reference.md](02-api-reference.md) の「実測: 領域の位置と margins」にあります。
 
 ### 読み取れたこと
 
 - 垂直バーの幅は 84.0 pt です。safe area がバー側に 84.0、content margins が逆側に 20.0 という構造で、左右を足しても常に同じ値にはなりません。「片側の値を反対側に流用しない」という指針が、数値で裏付けられました
 - 内側ディスプレイの portrait では垂直バーが出ません（`toolbarVerticalEdge` が nil、safe area の左右が 0 / 0）。記事にあった例外を、実測で確認できました
-- 右に回転させると、バーは leading 側に出ます。バーは物理的に同じ辺にあるため、回転方向で leading / trailing が入れ替わります。`toolbarVerticalEdge` を見ずに trailing 固定で組むと破綻します
-- `division` は partially folded のときだけ 1 件です。平らな状態では非アクティブなので 0 件です
-- `occlusion` は外側 2 件 / 内側 1 件
-- safe area の top は大タイトル展開時 82.0 で、スクロールして inline に縮むと 24.0 になります（`GeometryReader` を `List` の外に置いているため、タイトルの状態を拾います）
+- closed / landscape には、バーが左に出る向きと右に出る向きがあります。バーは物理的に同じ辺にあるため、向きで leading / trailing が入れ替わります。`toolbarVerticalEdge` を見ずに trailing 固定で組むと破綻します
+- `division` は partially folded のときだけアクティブです。fully open では非アクティブとして存在し、closed では存在しません
+- `occlusion` は、closed で 2 件（外側のカメラ）がアクティブです。open と partial では、アクティブな 1 件（ステータス表示の領域）と、非アクティブの 1 件（内側カメラ）です
+- safe area の top は、大タイトル展開時 82.0 で、スクロールして inline に縮むと 24.0 になります（`GeometryReader` を `List` の外に置いているため、タイトルの状態を拾います）
 
 ## 記事と SDK の突き合わせ結果
 

@@ -11,11 +11,12 @@ iPhoneDuoLab/
 ├── docs/                    調査メモ（図つき）
 │   ├── 00-overview.md       デバイスの基礎、size class、3 状態と 6 ポーズ
 │   ├── 01-design-principles.md  デザイン原則、予約領域、アクセシビリティ
-│   ├── 02-api-reference.md  SDK から抽出した API リファレンス
-│   ├── 03-verification.md   シミュレータでの実測値と落とし穴
+│   ├── 02-api-reference.md  API リファレンス（引数と、姿勢ごとの実測値・画像つき）
+│   ├── 03-verification.md   シミュレータの操作、測定の方法、落とし穴
 │   ├── 04-camera.md         2 つの前面カメラ、direction / rotation coordinator
 │   ├── 05-before-after.md   対応する / しないの比較スクリーンショット
 │   ├── 06-existing-app-migration.md  既存 UIKit アプリで踏んだ不具合と確認ポイント
+│   ├── 07-webview.md        WebView に表示するページの safe area（2 つの対応方法と実測値）
 │   ├── 99-checklist.md      移行チェックリスト
 │   ├── 90-sources.md        参照元
 │   └── assets/              図（SVG）
@@ -25,7 +26,8 @@ iPhoneDuoLab/
 ├── skills/
 │   └── iphone-duo-lab/      docs を AI 向けにまとめた Claude Code スキル
 └── tools/
-    └── DuoCompare/          SDK 別ビルドの比較用アプリ（swiftc 直ビルド）
+    ├── DuoCompare/          SDK 別ビルドの比較用アプリ（swiftc 直ビルド）
+    └── measure/             測定用スクリプト（Lab の値の読み出し、撮影、画素からの寸法測定）
 ```
 
 ## AI から使う（Claude Code スキル）
@@ -66,9 +68,17 @@ open iPhoneDuoLab.xcodeproj
 
 実行先に iPhone Duo シミュレータを選んでください。
 
-Xcode 27 のバンドルに `Simulator.app` はなく、`DeviceHub.app` に置き換わっています。折りたたみ状態は、デバイスウィンドウ下部バーの右端にあるスライダーで切り替えます。値はヒンジ角度（0 から 180 度）そのもので、0 が closed、180 が fully open、中間が partially folded です。メニュー項目もキーボードショートカットもなく、`simctl` にも該当コマンドはありません。
+Xcode 27 のバンドルに `Simulator.app` はなく、`DeviceHub.app` に置き換わっています。姿勢は、デバイスウィンドウの下部バーにある、3 つの姿勢ボタン（電話型が closed、本型が partially folded、平らな画面が fully open）と、回転ボタンで切り替えます。メニュー項目もキーボードショートカットもなく、`simctl` にも該当コマンドはありません。
 
-内側ディスプレイにはタッチ操作が届きません。自動操作するときは、**閉じた状態で画面を開いてから折る**必要があります。詳細は [docs/03-verification.md](docs/03-verification.md) を参照してください。
+**回転ボタンは、上下が逆の向きも通ります。** 測定や撮影の前に、向きを値で確かめてください（[docs/03-verification.md](docs/03-verification.md)）。
+
+別の Xcode で作業しているときは、`xcode-select` を切り替えず、`DEVELOPER_DIR` を指定して 27.1 を使えます。
+
+```sh
+export DEVELOPER_DIR=/Applications/Xcode-27.1.0-Beta.app/Contents/Developer
+```
+
+内側ディスプレイにはタッチ操作が届きません。すべての Lab は、起動引数 `-lab <名前>` で直接開けます（例: `-lab apiValues`）。Lab の一覧と引数は [docs/03-verification.md](docs/03-verification.md) にあります。
 
 ## 進め方
 
