@@ -28,17 +28,17 @@
 | partial / portrait | 内側 | 669 × 951 | 姿勢ボタン（本型）。ヒンジ角度は約 128°（127.5〜128.0°） |
 | partial / landscape | 内側 | 951 × 669 | 同上で landscape にする |
 
-closed / landscape 以外で、バーが左に出る向きは測っていません。左右が反転するだけだと思われますが、未確認です。
+バーが左に出る向きは、closed / landscape だけ測りました。
 
 ### 値の読み方
 
-- 単位は pt です。safe area と margins は **top / bottom / leading / trailing** の順です
-- SwiftUI の `GeometryProxy` で得る座標は、safe area の内側（ナビゲーションバーの下）が原点です。UIKit の view の座標は、画面の左上が原点です。同じ領域でも、`y` の値が safe area の top（この Lab では 82pt）だけずれます
-- 「バー」は、垂直バー（側面に寄ったナビゲーションバー・ツールバー・タブバー）のことです。幅は 84pt です
+- 単位は pt。safe area と margins は top / bottom / leading / trailing の順
+- `GeometryProxy` の座標は safe area の内側が原点、UIKit は画面の左上が原点（`y` が safe area の top、この Lab では 82pt ずれる）
+- 「バー」は垂直バー（幅 84pt）
 
 ### 6 姿勢の基本値
 
-`NavigationStack` の中に置いた画面で読んだ値です。上部の 82pt は、ステータスバーとナビゲーションバーの分です。
+`NavigationStack` の中で読んだ値。上部の 82pt は、ステータスバーとナビゲーションバーです。
 
 | 姿勢 | `GeometryReader` の size | size class（h / v） | `toolbarVerticalEdge` | safe area |
 | --- | --- | --- | --- | --- |
@@ -50,8 +50,7 @@ closed / landscape 以外で、バーが左に出る向きは測っていませ�
 | partial / portrait | 669 × 835 | regular / regular | nil | 82 / 34 / 0 / 0 |
 | partial / landscape | 867 × 553 | regular / regular | trailing | 82 / 34 / 0 / **84** |
 
-- 垂直バーが出るのは、closed の 2 向きと、内側の landscape です。内側の portrait には出ません
-- バーがある辺の safe area は 84pt になり、反対側は 0 です。左右の値を足しても、姿勢によらず同じ値にはなりません
+- 垂直バーが出るのは、closed の 2 向きと内側の landscape。バーのある辺の safe area だけが 84、反対側は 0（左右は非対称）
 
 ## API の抽象度には層がある
 
@@ -118,11 +117,11 @@ func axes(_ axes: Axis.Set) -> SplitArrangementViewStyle
 
 ### 実測: ペインの位置
 
-青い primary と橙の secondary を入れた `ArrangementView` を、姿勢ごとに画面に出し、各ペインの範囲を画素から測りました。数値は pt で、**画面の左上が原点**です（UIKit の座標と同じです）。`GeometryReader` の座標にするには、y から safe area の top（この Lab では 82）を、x から safe area の leading（バーが左のときだけ 84）を引きます。
+青い primary と橙の secondary を入れて、各ペインの範囲を画素から測りました（pt、**画面の左上が原点**。`GeometryReader` の座標にするには、y から 82 を引く）。
 
-凡例です。**P** は primary、**S** は secondary、**単** は primary だけが全面に出て secondary は出ない状態、**重** は 2 つが全面で重なる状態です。
+**P** = primary、**S** = secondary、**単** = primary だけ、**重** = 全面で重なる。
 
-`.automatic` と `.split` は、全姿勢で同じ結果でした。
+`.automatic` は `.split` と同じ結果でした。
 
 | 姿勢 | `.split`（`.automatic`） | `.split.axes(.vertical)` | `.split.axes(.horizontal)` |
 | --- | --- | --- | --- |
@@ -142,15 +141,11 @@ func axes(_ axes: Axis.Set) -> SplitArrangementViewStyle
 | partial / portrait | **P 下** y 496–917 / **S 上** y 82–456 | `.overlay` と同じ | 重 |
 | partial / landscape | **P 右** x 496–867 / **S 左** x 0–456 | 重 | `.overlay` と同じ |
 
-読み取れることです。
+- partial は、ペインの間に **40pt の空き**ができる。折り目がないと、ちょうど半分ずつ
+- `.split` は P が左（縦なら上）。`.overlay` が分かれるときは**逆**（S が左・上）
+- `axes` は、portrait では `.vertical`、landscape では `.horizontal` だけが効く。使えない軸は primary だけ（`.overlay` は重なったまま）
 
-- 折り目がある（partial）と、2 つのペインの間に **40pt の空き**ができます。折り目がない姿勢では、ちょうど半分ずつで、空きはありません
-- `.split` は P が左（縦なら上）、S が右（縦なら下）です。`.overlay` が分かれるときは、逆になります。**S が左（縦なら上）、P が右（縦なら下）** です
-- `axes` は、分ける向きを制限します。その姿勢で使えない軸を指定すると、分けずに primary だけを出します。`.overlay` の場合は重なったままです。portrait では `.vertical`（上下に分ける）だけ、landscape では `.horizontal`（左右に分ける）だけが効きました。折り目の有無は関係ありません
-- closed / landscape は、compact / compact なので、`.split` でも分かれません
-- `.overlay` を折り目のない姿勢で使うと、全面で重なります。分かれて見えるのは、partial のときだけです
-
-closed / landscape は、バーが左に出る向きで測りました。バーが右に出る向きでは、x の範囲がバーの分だけ反対側にずれます（`x 0–594`）。
+closed / landscape は、バーが左の向きで測りました（バーが右なら、x がバーの分だけ反対側にずれる）。
 
 | closed / portrait | closed / landscape（バーが左） | open / portrait |
 | --- | --- | --- |
@@ -160,7 +155,7 @@ closed / landscape は、バーが左に出る向きで測りました。バー�
 | --- | --- | --- |
 | <img src="assets/shots/arrangement/split-open-landscape.png" width="200"> | <img src="assets/shots/arrangement/split-partial-portrait.png" width="200"> | <img src="assets/shots/arrangement/split-partial-landscape.png" width="200"> |
 
-上の 6 枚は `.split` です。同じ partial / landscape で、スタイルを変えたものです。
+上の 6 枚は `.split`。次は partial / landscape での、スタイルの違いです。
 
 | `.split` | `.split.axes(.vertical)` | `.overlay` | `.overlay.axes(.vertical)` |
 | --- | --- | --- | --- |
@@ -237,11 +232,9 @@ UIKit 側は `UIView.reservedRegions(kind:options:)` で、`layoutDirectionBehav
 
 ### 実測: 領域の位置と margins
 
-`frame` は、**margins を含んだ**矩形です（UIKit のヘッダに "The rect of the region in the view's coordinate space, including the margins" とあります）。`margins` は、その中にある「操作できる内容を避けるための余白」です。避けるべき実体は、`frame` から `margins` を引いた矩形になります。
+`frame` は **margins を含む**矩形です（UIKit ヘッダ）。実体は `frame` から `margins` を引いたもの。折り目は、実体の幅が 0 で、`frame` の 40pt は左右（または上下）の margins 20pt ずつです。
 
-折り目で確かめると、こうなります。partial / landscape の `frame` は幅 40pt で、`margins` は左右 20pt ずつです。実体の幅は 0 で、折り目の両側に 20pt ずつの余白が付いた形です。折り目を避けるなら、40pt 全体を避けます。
-
-下の表は `.includeInactive` を付けて取った、全件です。SwiftUI の `GeometryProxy` の座標で、`(x, y) 幅×高さ` の順です。`m[]` は margins（top / bottom / leading / trailing）、**A** はアクティブ、**非**は非アクティブを表します。
+`.includeInactive` を付けた全件です（`GeometryProxy` の座標、`(x, y) 幅×高さ`、`m[]` は margins、**A** = アクティブ、**非** = 非アクティブ）。`.occlusion` の margins は全件 0。
 
 | 姿勢 | `.division`（折り目） | `.occlusion`（カメラなど） |
 | --- | --- | --- |
@@ -253,18 +246,12 @@ UIKit 側は `UIView.reservedRegions(kind:options:)` で、`layoutDirectionBehav
 | partial / portrait | **A** (0, 373.5) 669×40 m[20/20/0/0] | 非 (21, 133.7) 37×58 / **A** (535, −82) 134×82 |
 | partial / landscape | **A** (455.5, −82) 40×669 m[0/0/20/20] | 非 (677.3, −61) 58×37 / **A** (867, −82) 84×120 |
 
-`.occlusion` の `margins` は、全件で 0 です。
+- `.division` は **partial のときだけアクティブ**。open は非アクティブで存在（`.includeInactive` が要る）、closed は 0 件
+- 折り目は、portrait で横帯、landscape で縦帯
+- closed の `.occlusion` は 2 件（37×37 のカメラと、それを含む幅 84pt の領域）。open / partial は、アクティブ 1 件（時計とアイコンの位置）と、非アクティブの内側カメラ 1 件
+- 内側カメラの領域の位置は向きで変わる（下）。**位置を決め打ちせず、毎回 `reservedRegions` を読む**
 
-読み取れることです。
-
-- **折り目（`.division`）は、partial のときだけアクティブです。** open では非アクティブのまま存在し、`.includeInactive` を付けないと返りません。closed では、`.includeInactive` を付けても 0 件です
-- 折り目の向きは、画面の向きで決まります。portrait では横帯（幅 = 画面幅、高さ 40pt）、landscape では縦帯（幅 40pt、高さ = 画面高）です。`frame` の `y`（landscape では `x`）が、折り目の位置です
-- `.occlusion` は closed で 2 件返ります。どちらもアクティブです。1 つは 37×37 のカメラで、もう 1 つは、それを含む幅 84pt の領域です。後者が何のための領域かは、実測では分かりません（[01-design-principles.md](01-design-principles.md) は、Live Activity で Dynamic Island へ広がる領域と説明しています）
-- open と partial では、アクティブな `.occlusion` が 1 件です。画像では、時計とアイコンが出る位置に当たります。portrait では 134×82、landscape では 84×120 です
-- 内側の前面カメラは、open と partial で**非アクティブ**の領域として 1 件現れます。portrait では 37×58、landscape では 58×37 です。このシミュレータにはカメラが無く、動作中の状態は作れません。アクティブになる条件は、実機で確かめる必要があります（[04-camera.md](04-camera.md)）
-- 内側カメラの領域の位置は、端末の向きで変わります（次の節）。**位置を決め打ちせず、毎回 `reservedRegions` を読んでください**
-
-**回転ボタンで通る向きによる違い**です。内側ディスプレイでは、回転ボタンを押すと 4 つの向きを順に通ります。**180° 離れた 2 つの向きの間で、内側カメラの領域の位置が 180° 回ります。** 上の表と、この文書の画像は、すべて「カメラの領域が画面の上半分にある向き」で統一しています。
+**回転ボタンは、内側ディスプレイで 4 つの向きを通ります。180° 離れた 2 つの向きで、内側カメラの領域の位置が 180° 回ります。** 上の表と画像は、カメラの領域が画面の上半分にある向きです。
 
 | 向き | カメラの領域（SwiftUI の座標） | 備考 |
 | --- | --- | --- |
@@ -273,15 +260,12 @@ UIKit 側は `UIView.reservedRegions(kind:options:)` で、`layoutDirectionBehav
 | landscape・カメラの領域が上半分（この文書の表と画像） | (677.3, −61) 58×37 | 画面の上端の、右寄り |
 | landscape・もう一方の向き | (215.7, 529) 58×37 | 画面の下端の、左寄り |
 
-- どちらの向きでも、DeviceHub 上で文字は読める向きでした。**見た目の向きだけでは、どちらの向きか分かりません。** 向きを見分けるには、この領域の位置を見ます
-- そのほかの値（safe area、size class、`.division`、アクティブな `.occlusion` など）は、この 2 つの向きで変わりませんでした。変わったのは、内側カメラの領域の位置だけです
-- 外側ディスプレイの closed / landscape にも、2 つの向きがあります。バーが左に出る向きでは、カメラの領域が画面の左上に、バーが右に出る向きでは、右下にあります。どちらの向きでも測りました
-- 向きが上下逆になった状態（closed / portrait でバーが左に出て、文字が逆さまになる向き）も、回転ボタンで通ります。この文書の値と画像には、その状態のものは含めていません
+- 見た目（文字の向き）では、どちらの向きか分からない。領域の位置で見分ける
+- 位置以外の値（safe area、`.division`、アクティブな `.occlusion` など）は、2 つの向きで同じ
+- closed / landscape も 2 向き。バーが左ならカメラの領域は左上、右なら右下
+- 上下が逆の向き（closed / portrait でバーが左、文字が逆さま）は、この文書に含めていない
 
-SwiftUI と UIKit は、同じ矩形を返します。座標の原点だけが違い、UIKit の値は次のように変換できます。
-
-- UIKit の `y` = SwiftUI の `y` + safe area の top（この Lab では 82）
-- UIKit の `x` = SwiftUI の `x` + safe area の leading（バーが左のときだけ 84、それ以外は 0）
+SwiftUI と UIKit は同じ矩形を返します。UIKit の値は、SwiftUI の値に safe area の top（`y`）と leading（`x`、バーが左のときだけ 84）を足したものです。
 
 | closed / portrait | closed / landscape（バーが左） | open / portrait |
 | --- | --- | --- |
@@ -291,7 +275,7 @@ SwiftUI と UIKit は、同じ矩形を返します。座標の原点だけが�
 | --- | --- | --- |
 | <img src="assets/shots/regions/open-landscape.png" width="200"> | <img src="assets/shots/regions/partial-portrait.png" width="200"> | <img src="assets/shots/regions/partial-landscape.png" width="200"> |
 
-画像は `ReservedRegionsLab` で、`.includeInactive` を付けて描いたものです。濃い色が実体、薄い色と破線が `frame` 全体（margins を含む）、「非アクティブ」と書いた領域は薄く描いてあります。
+画像は `ReservedRegionsLab`（`.includeInactive`）。濃い色が実体、薄い色と破線が `frame`。「非アクティブ」は薄く描いています。
 
 ## 3. ヒンジ（iOS 27.1）
 
@@ -328,9 +312,9 @@ UIKit 側は `UIHinge`（`status` / `angle: CGFloat`。**単位は radians** で
 
 ### 実測: 通知の中身と、状態が切り替わる角度
 
-姿勢ボタンで端末を動かしながら、`onHingeChange` に届く通知をすべて記録しました。
+姿勢ボタンで動かしながら、`onHingeChange` の通知をすべて記録しました。
 
-**最初の通知**は、ビューが現れた直後に 1 回届きます。`oldContext.hinge` は nil で、`newContext.hinge` に現在の値が入ります。
+**最初の通知**は、ビューが現れた直後に 1 回。`oldContext.hinge` は nil です。UIKit の `UIHingeInteraction` も同じです。
 
 | 姿勢 | 最初の通知 |
 | --- | --- |
@@ -338,9 +322,7 @@ UIKit 側は `UIHinge`（`status` / `angle: CGFloat`。**単位は radians** で
 | partial | `nil → partiallyOpen 127.8°`（回により 127.5° や 128.0°） |
 | open | `nil → fullyOpen 180.0°` |
 
-UIKit の `UIHingeInteraction` も同じです。ヘッダに、"The handler is invoked with the initial hinge state, and again whenever there is an update" とあります。
-
-**姿勢ボタンで動かすと、角度は途中の値を通りながら変わります。** closed から open へ動かしたときの通知は、次の 13 件でした。
+closed → open で届いた 13 件です。
 
 ```
 nil → closed 0.0°
@@ -350,9 +332,9 @@ partiallyOpen 43.2° → 131.1° → 144.7° → 161.7° → 163.4° → 167.3°
 partiallyOpen 174.7° → fullyOpen 180.0°
 ```
 
-通知の間隔は、1° 台から 90° 近くまでまちまちです（1.1° 刻みの箇所も、`43.2° → 131.1°` のように 88° 飛ぶ箇所もありました）。UIKit のヘッダにも、"The rate and granularity of angle updates are system policy and can change based on system state, so don't depend on a particular update frequency or precision" とあります。**角度の細かさや頻度に依存しないでください。**
+通知の間隔は、1° 台から 90° 近くまでまちまちです（UIKit ヘッダも、頻度や細かさに依存しないよう求めています）。
 
-**`status` が切り替わる角度は、動かす向きで違いました。** 記録した切り替わりを並べます。
+**`status` が切り替わる角度は、動かす向きで違います。**
 
 | 動かし方 | 切り替わり |
 | --- | --- |
@@ -360,17 +342,17 @@ partiallyOpen 174.7° → fullyOpen 180.0°
 | 開く（closed → open） | `closed 5.0° → partiallyOpen 43.2°`、`partiallyOpen 174.7° → fullyOpen 180.0°` |
 | 閉じる（open → closed） | `fullyOpen 180.0° → partiallyOpen 159.6°`、**`partiallyOpen 93.5° → closed 82.7°`** |
 
-- 開いていく途中では、closed は 19.4° まで、partiallyOpen は 22.6° から届きました。閉じていく途中では、partiallyOpen は 93.5° まで、closed は 82.7° から届きました
-- 同じ角度でも、動かす向きで `status` が違います。開いている途中は 22.6° で partiallyOpen になるのに、閉じている途中は 82.7° でも closed でした。**角度から `status` を自分で計算せず、`status` を使ってください。** UIKit のヘッダも "prefer `status` over the angle" と勧めています
-- `fullyOpen` になるのは、180.0° のときだけでした。174.7° や 174.8° でも `partiallyOpen` です
-- これはシミュレータの遷移アニメーション中の値です。実機で同じになるかは確認していません
+- 開くとき、closed は 19.4° まで、partiallyOpen は 22.6° から。閉じるとき、partiallyOpen は 93.5° まで、closed は 82.7° から
+- 同じ角度でも、向きで `status` が違う。**角度から `status` を計算せず、`status` を使う**
+- `fullyOpen` は 180.0° のときだけ（174.7°、174.8° は `partiallyOpen`）
+- シミュレータの遷移アニメーション中の値。実機は未確認
 
-**同じ値の通知が、続けて届くことがあります。** partial へ動かしたとき、角度が止まったあとに、まったく同じ角度の通知が 9 回続けて届きました。`onHingeChange` のクロージャの中で `@State` を更新しない場合でも、同じでした。角度を 4 桁まで記録して確かめると、9 回とも `127.77777862548827°` で、値は一致していました。
+**同じ値の通知が、続けて届くことがあります。** partial に止まったあと、同じ角度（`127.77777862548827°`）の通知が 9 回続きました。`@State` を更新しなくても届きます。
 
-- open へ動かしたとき（180.0° でぴったり止まる動き）は、同じ値の繰り返しは見られませんでした
-- 通知が届く回数は、回ごとに違いました（5 回、9 回）。**通知が重複することを前提に、値が前回と同じなら処理を省く書き方にしてください**
+- open（180.0° で止まる）では見られませんでした。回数は回により 5〜9 回
+- **重複を前提に、値が前回と同じなら処理を省く**
 
-**UIKit の角度は radians です。** `UIHinge.angle` はヘッダに "in radians" とあり、実測でも partial は 2.2（= 127.8°）、open は 3.1（≒ π、180°）でした。度にするには `angle * 180 / .pi` とします。SwiftUI の `Angle` は、`.degrees` で度を読めます。
+**UIKit の角度は radians です。** partial は 2.2（= 127.8°）、open は 3.1（≒ π）。度は `angle * 180 / .pi` で求めます。SwiftUI の `Angle` は `.degrees` で読めます。
 
 ## 4. ツールバーの垂直配置
 
@@ -436,7 +418,7 @@ UIKit は `traitCollection.verticalBarEdge` です。型は `UIVerticalBarEdge` 
 
 ### 実測: バーの辺と、項目の移り方
 
-`toolbarVerticalEdge`（SwiftUI）と `traitCollection.verticalBarEdge`（UIKit）の値です。
+`toolbarVerticalEdge`（SwiftUI）と `verticalBarEdge`（UIKit）の値です。
 
 | 姿勢 | `toolbarVerticalEdge` | `verticalBarEdge` |
 | --- | --- | --- |
@@ -448,11 +430,11 @@ UIKit は `traitCollection.verticalBarEdge` です。型は `UIVerticalBarEdge` 
 | partial / portrait | **nil** | unspecified |
 | partial / landscape | trailing | trailing |
 
-- 2 つは、全姿勢で対応しました。SwiftUI が nil の姿勢で、UIKit は `unspecified` です
-- 同じ closed / landscape でも、端末を回す向きでバーの辺が変わります。**バーの辺を trailing に決め打ちしないでください**
-- UIKit のヘッダには、この値は「バーが今見えているかどうかによらず、システムが希望する辺」とあります。SwiftUI では、`toolbarVerticalBehavior(.disabled)` にすると `toolbarVerticalEdge` が nil になりました（下の画像）。UIKit の trait が、同じ場面で `unspecified` になるかは確認していません
+- 2 つは全姿勢で対応（SwiftUI の nil は、UIKit の `unspecified`）
+- closed / landscape は、回す向きでバーの辺が変わる。**trailing に決め打ちしない**
+- `toolbarVerticalBehavior(.disabled)` にすると、SwiftUI の値は nil になった（画像）。UIKit の trait が同じかは未確認
 
-**項目の移り方**を、`ToolbarLab` で確かめました。項目は次の 4 つです。
+**項目の移り方**（`ToolbarLab`）。項目は次の 4 つです。
 
 | 項目 | 内容 |
 | --- | --- |
@@ -461,15 +443,15 @@ UIKit は `traitCollection.verticalBarEdge` です。型は `UIVerticalBarEdge` 
 | 完了 | テキストのみ。`.topBarPinnedTrailing` |
 | 前へ / 次へ | シンボルのみ。`.bottomBar` |
 
-垂直バーが出る姿勢（closed / portrait、open / landscape）では、次のようになりました。
+垂直バーが出る姿勢では:
 
 - **共有**、**前へ / 次へ**、戻るボタンは、垂直バーへ移ります。前へ / 次へは、垂直バーの下側に並びます
 - **設定**（`.horizontalOnly`）と**完了**（テキスト）は、上の水平バーに残ります
 - `.toolbarVerticalBehavior(.disabled)` にすると、垂直バーが出る姿勢でも、すべて水平のままです
 
-内側の portrait（垂直バーが出ない姿勢）では、設定によらず水平です。
+内側の portrait は、設定によらず水平です。
 
-`.topBarPinnedTrailing` にした場合と、`.topBarTrailing` にした場合の違いは、この 4 項目の構成では、見た目では確認できませんでした。
+`.topBarPinnedTrailing` と `.topBarTrailing` の違いは、見た目では確認できませんでした。
 
 | 姿勢 | 自動 | `.toolbarVerticalBehavior(.disabled)` | 完了を pinned にしない |
 | --- | --- | --- | --- |
@@ -477,7 +459,7 @@ UIKit は `traitCollection.verticalBarEdge` です。型は `UIVerticalBarEdge` 
 | open / landscape | <img src="assets/shots/toolbar/auto-open-landscape.png" width="200"> | <img src="assets/shots/toolbar/disabled-open-landscape.png" width="200"> | <img src="assets/shots/toolbar/notpinned-open-landscape.png" width="200"> |
 | open / portrait | <img src="assets/shots/toolbar/auto-open-portrait.png" width="200"> | <img src="assets/shots/toolbar/disabled-open-portrait.png" width="200"> | <img src="assets/shots/toolbar/notpinned-open-portrait.png" width="200"> |
 
-画面の中央にある「toolbarVerticalEdge」の行が、その姿勢で読めた値です。
+画面中央の「toolbarVerticalEdge」の行が、その姿勢で読めた値です。
 
 ### 可視性優先度（iOS 27.0）
 
@@ -567,7 +549,7 @@ UIKit には `UIView.LayoutRegion`（iOS 26.0）があります。safe area、la
 
 ### 実測: `contentMargins(for:edges:)` が返す値
 
-`GeometryProxy.contentMargins(for: .container, edges:)` の返り値です。`EdgeInsets` の top / bottom / leading / trailing の順で、単位は pt です。
+`GeometryProxy.contentMargins(for: .container, edges:)` の返り値です（top / bottom / leading / trailing、pt）。
 
 | 姿勢 | `.all` と `.horizontal` | `.leading` | `.trailing` | `.top` / `.bottom` / `.vertical` |
 | --- | --- | --- | --- | --- |
@@ -579,12 +561,11 @@ UIKit には `UIView.LayoutRegion`（iOS 26.0）があります。safe area、la
 | partial / portrait | 0 / 0 / **20** / **20** | 0 / 0 / **20** / 0 | 0 / 0 / 0 / **20** | すべて 0 |
 | partial / landscape | 0 / 0 / **20** / 0 | 0 / 0 / **20** / 0 | 0 / 0 / 0 / 0 | すべて 0 |
 
-- 値があるのは、水平方向（leading と trailing）だけです。**垂直方向は、どの姿勢でも 0** です
-- 水平方向は 20pt です。ただし、**垂直バーがある辺は 0** になります。closed / portrait でバーが trailing にあれば、trailing は 0、leading は 20 です
-- `edges` は、返す辺を絞るだけです。`.all` と `.horizontal` は同じ値を返し、`.leading` は leading の値だけ、`.trailing` は trailing の値だけを返します
-- 引数に渡せるガイドは、`.container` だけです
+- 値があるのは水平方向だけ。**垂直方向は常に 0**
+- 水平方向は 20pt。ただし**バーのある辺は 0**
+- `edges` は返す辺を絞るだけ（`.all` と `.horizontal` は同じ）。ガイドは `.container` だけ
 
-**UIKit の `layoutMargins` との関係**を、同じ姿勢で読み比べました。
+UIKit の `layoutMargins` との比較です。
 
 | 姿勢 | `safeAreaInsets` | `systemMinimumLayoutMargins` | `layoutMargins` | SwiftUI の `.all` |
 | --- | --- | --- | --- | --- |
@@ -593,11 +574,11 @@ UIKit には `UIView.LayoutRegion`（iOS 26.0）があります。safe area、la
 | open / portrait | 82 / 34 / 0 / 0 | 0 / 0 / 20 / 20 | 82 / 34 / 20 / 20 | 0 / 0 / 20 / 20 |
 | open / landscape | 82 / 34 / 0 / 84 | 0 / 0 / 20 / 0 | 82 / 34 / 20 / 84 | 0 / 0 / 20 / 0 |
 
-UIKit の `layoutMargins` は、`safeAreaInsets` に `systemMinimumLayoutMargins` を足した値です。SwiftUI の `contentMargins(for: .container)` は、**safe area の外側に足す余白（`systemMinimumLayoutMargins`）だけ**を返します。safe area の分は含みません。UIKit の `layoutMargins` の代わりに使うときは、`safeAreaInsets` を足してください。
+`layoutMargins` = `safeAreaInsets` + `systemMinimumLayoutMargins`。SwiftUI の `contentMargins(for: .container)` は、**足した分（`systemMinimumLayoutMargins`）だけ**で、safe area は含みません。UIKit の代わりにするときは、`safeAreaInsets` を足します。
 
 ### 実測: `View.contentMargins(for:edges:alignment:)` の効果
 
-この修飾子を付けたビューが、実際にどこに描かれるかを、画面を撮って画素から測りました。数値は画面の左端を 0 とした x の範囲（pt）です。対象は、青い `Color` を全面に広げたビューです。
+画面を撮って、画素から測った x の範囲です（pt、画面の左端が 0）。対象は、青い `Color` を全面に広げたビューです。
 
 | 姿勢（画面の幅） | 修飾子なし | `.contentMargins(for: .container)` | `.ignoresSafeArea()` のみ | 修飾子 → `.ignoresSafeArea()` | `.ignoresSafeArea()` → 修飾子 |
 | --- | --- | --- | --- | --- | --- |
@@ -609,25 +590,25 @@ UIKit の `layoutMargins` は、`safeAreaInsets` に `systemMinimumLayoutMargins
 | partial / portrait（669） | 0–669 | **20**–**649** | 0–669 | **20**–**649** | **20**–**649** |
 | partial / landscape（951） | 0–867 | **20**–867 | 0–951 | **20**–951 | **20**–951 |
 
-- **この修飾子は、`GeometryProxy.contentMargins` が返す値の分だけ、ビューを内側に寄せます。** 全面に広げたビューに付けると、margin のある辺だけ、その分だけ空きができます
-- `.ignoresSafeArea()` で画面の端まで広げても、margin は残ります。バーの下まで広げつつ、leading にだけ 20pt の空きを残せます。`.ignoresSafeArea()` との順序は、結果に影響しませんでした
-- 縦方向の margin は、どの姿勢でも 0 です（`GeometryProxy.contentMargins` が返す値）。`View` の修飾子に `edges: .vertical` を付けた場合は、測っていません
-- **固定サイズのビューは動きません。** 100pt 四方のビューに付けたところ、x 383.7–483.7 に描かれました（open / landscape）。これは、safe area 全体（x 0–867）の中央です。margin を引いた領域（x 20–867）の中央なら、x 393.5–493.5 になるはずで、そうはなりませんでした。この修飾子は、子ビューに与える幅を縮める働きだと考えられます
-- **`alignment` の効果は、確認できませんでした。** 100pt 四方のビューでも、画面より大きい幅 1200 のビューでも、`nil` / `.leading` / `.trailing` / `.center` の 4 通りで、見た目の位置は同じでした
+- **`GeometryProxy.contentMargins` の分だけ、ビューを内側へ寄せる**（margin のある辺だけ）
+- `.ignoresSafeArea()` と併用しても margin は残る。順序は結果に影響しない
+- `edges: .vertical` を付けた場合は、測っていません（`GeometryProxy` の値は 0）
+- **固定サイズのビューは動かない**（100pt 四方は、safe area の中央 x 383.7–483.7 のまま）
+- **`alignment` の効果は確認できませんでした**（`nil` / `.leading` / `.trailing` / `.center` で同じ。幅 1200 のビューでも同じ）
 
-なお、`onGeometryChange` で読んだ frame は、この修飾子や `.ignoresSafeArea()` による見た目の変化を反映しませんでした。実験の初期に、x 20–867 に描かれるビューの frame が `0–867` と報告されるのを見ています（この値の記録は残していません）。**位置は frame の数値ではなく、画面で確認してください。**
+**`onGeometryChange` の frame は、この修飾子や `.ignoresSafeArea()` による見た目の変化を反映しません。位置は画面で確認してください。**
 
 | 修飾子なし | `.ignoresSafeArea()` のみ | `.contentMargins(for: .container)` | 修飾子 → `.ignoresSafeArea()` |
 | --- | --- | --- | --- |
 | <img src="assets/shots/margin/mode0-open-landscape.png" width="200"> | <img src="assets/shots/margin/mode1-open-landscape.png" width="200"> | <img src="assets/shots/margin/mode2-open-landscape.png" width="200"> | <img src="assets/shots/margin/mode3-open-landscape.png" width="200"> |
 
-上の 4 枚は open / landscape です。バーは右にあり、trailing の margin は 0 なので、右は空きません。
+上の 4 枚は open / landscape です（バーは右で、右は空かない）。
 
 | closed / portrait | open / portrait |
 | --- | --- |
 | <img src="assets/shots/margin/mode2-closed-portrait.png" width="200"> | <img src="assets/shots/margin/mode2-open-portrait.png" width="200"> |
 
-どちらも `.contentMargins(for: .container)` を付けたものです。closed / portrait は右にバーがあるので、左だけに空きができます。open / portrait はバーがないので、左右に 20pt ずつ空きができます。
+`.contentMargins(for: .container)` を付けたものです。closed / portrait は左だけ、open / portrait は左右に 20pt の空きができます。
 
 ## 6. タブバーのサイドバー化（iOS 27.0）
 
@@ -657,7 +638,7 @@ iOS 18 の `.tabViewStyle(.sidebarAdaptable)` も SDK に残っています。�
 
 ### 実測: シートの大きさと位置
 
-3 種類のシートを出し、シートの中から `GeometryReader` で大きさを読みました。数値は `幅 × 高さ` で、括弧は safe area（top / bottom / leading / trailing）です。closed / landscape は、バーが左に出る向きで測りました。
+シートの中から `GeometryReader` で読んだ大きさです（`幅 × 高さ`、括弧は safe area の top / bottom / leading / trailing）。closed / landscape は、バーが左の向きです。
 
 | 姿勢 | 素のシート | `NavigationStack` 入り | `.toolbarVerticalBehavior(.disabled)` を付けた `NavigationStack` 入り |
 | --- | --- | --- | --- |
@@ -668,11 +649,10 @@ iOS 18 の `.tabViewStyle(.sidebarAdaptable)` も SDK に残っています。�
 | partial / portrait | 653 × 827 | 653 × 753 | 653 × 753 |
 | partial / landscape | **459.5 × 627** | **459.7 × 553** | **459.3 × 471** |
 
-- **外側ディスプレイのシートには、垂直バーが出ます。** 幅 76pt のバーの分だけ、safe area の trailing（バーが左なら leading）が 76 になります。内側のシートには、垂直バーは出ません（左右の safe area は 0 です。partial / landscape の素のシートだけ、trailing が 0.2 でした）
-- **`.toolbarVerticalBehavior(.disabled)` の効果は、姿勢で違いました。** closed では、垂直バーの 76pt が消えて、幅が 76pt 広がります（374 → 450、586 → 662）。一方で、高さは 82pt 縮みます（562 → 480、350 → 268）。内側の landscape では、幅は変わらず、高さが 82pt 縮みます（553 → 471）。内側の portrait では変わりません。高さが縮む理由は確認していません
-- **折り目を避けて位置が変わるのは、landscape だけでした。** partial / landscape では、シートは折り目の左側に収まります（幅 459.5、折り目の左の領域は 455.7）。**partial / portrait では、折り目（横帯）をまたいで、open / portrait と同じ 653 × 827 で出ます**
-- シートの中から `reservedRegions(kind: .division)` を読むと、partial のときだけ 1 件返ります（closed と open では 0 件）。シートが折り目を避けていても、折り目の領域は見えます
-- アラートも、partial / landscape では、折り目の左側の領域の中央に出ました（画像）
+- **外側のシートには垂直バー（76pt）が付く。** 内側には付かない
+- `.toolbarVerticalBehavior(.disabled)`: closed は幅 +76pt・高さ −82pt、内側の landscape は高さ −82pt、内側の portrait は変わらない（高さが縮む理由は未確認）
+- **折り目を避けて片側に寄るのは、partial / landscape だけ。** partial / portrait は、折り目をまたぐ
+- シートの中の `division` は、partial のときだけ 1 件。アラートは partial / landscape で、折り目の左側の中央に出る
 
 | closed / portrait | closed / landscape（バーが左） | open / portrait |
 | --- | --- | --- |
@@ -682,7 +662,7 @@ iOS 18 の `.tabViewStyle(.sidebarAdaptable)` も SDK に残っています。�
 | --- | --- | --- |
 | <img src="assets/shots/sheet/plain-open-landscape.png" width="200"> | <img src="assets/shots/sheet/plain-partial-portrait.png" width="200"> | <img src="assets/shots/sheet/plain-partial-landscape.png" width="200"> |
 
-上の 6 枚は素のシートです。アラートは次のとおりです。
+上の 6 枚は素のシートです。アラート:
 
 | closed / portrait | partial / landscape |
 | --- | --- |
@@ -828,7 +808,7 @@ UIBackgroundExtensionView          // UIKit
 
 ### 実測: 配置ごとのシートの大きさ
 
-`.presentationPlacement(_:)` に 4 つの値を渡して、`NavigationStack` 入りのシートの大きさを読みました。数値は `幅 × 高さ` で、括弧は safe area の trailing です。
+`.presentationPlacement(_:)` の 4 値での、`NavigationStack` 入りシートの大きさです（括弧は safe area の trailing）。
 
 | 姿勢 | `.automatic` | `.leading` | `.center` | `.trailing` |
 | --- | --- | --- | --- | --- |
@@ -839,15 +819,15 @@ UIBackgroundExtensionView          // UIKit
 | partial / portrait | 653 × 753（0） | 653 × 753（0） | 653 × 753（0） | 653 × 753（0） |
 | partial / landscape | 459.7 × 553（0） | 459.7 × 553（0） | 459.7 × 553（0） | **383.7 × 553（76）** |
 
-- **効いたのは、内側の landscape で `.trailing` を指定したときだけです。** シートの右側に垂直バー（76pt）が出て、その分だけ幅が縮みます（653 → 577、459.7 → 383.7）
-- 位置は、`.leading` が左端、`.trailing` が右端、`.center` は中央です。`.automatic` は `.center` と同じ結果でした（画像）
-- 外側ディスプレイ（closed）と、内側の portrait では、4 つの値で結果が変わりませんでした。closed のシートには、もともと垂直バーが付いています
+- **効くのは、内側の landscape の `.trailing` だけ。** 垂直バー（76pt）が付き、幅が縮む
+- `.leading` は左端、`.trailing` は右端、`.center` は中央。`.automatic` は `.center` と同じ
+- 外側（closed）と内側の portrait は、4 値で同じ
 
 | `.automatic` | `.leading` | `.center` | `.trailing` |
 | --- | --- | --- | --- |
 | <img src="assets/shots/sheet/place-automatic-open-landscape.png" width="200"> | <img src="assets/shots/sheet/place-leading-open-landscape.png" width="200"> | <img src="assets/shots/sheet/place-center-open-landscape.png" width="200"> | <img src="assets/shots/sheet/place-trailing-open-landscape.png" width="200"> |
 
-上の 4 枚は open / landscape です。partial / landscape で、折り目の左側に収まるシートの `.leading` と `.trailing` は次のとおりです。
+上の 4 枚は open / landscape です。partial / landscape の `.leading` と `.trailing`:
 
 | `.leading` | `.trailing` |
 | --- | --- |
@@ -890,7 +870,7 @@ view.cornerConfiguration = .uniformCorners(radius: .containerConcentric(minimum:
 
 ### 実測: `edgeInsets(for:)` の値
 
-`view.edgeInsets(for:)` が返す `UIEdgeInsets` の値です。**top / bottom / left / right** の順で、単位は pt です。`UIEdgeInsets` なので、左右は leading / trailing ではなく物理的な left / right です。画面全体に広げた view で読みました。
+`view.edgeInsets(for:)` の値です（`UIEdgeInsets`、top / bottom / **left / right**、pt）。画面全体に広げた view で読みました。
 
 | 姿勢 | `.safeArea()` | `.safeArea(cornerAdaptation: .horizontal)` | `.margins()` | `.readableContent()` |
 | --- | --- | --- | --- | --- |
@@ -902,12 +882,12 @@ view.cornerConfiguration = .uniformCorners(radius: .containerConcentric(minimum:
 | partial / portrait | 82 / 34 / 0 / 0 | 82 / 34 / **16** / **16** | 82 / 34 / 20 / 20 | 82 / 34 / 20 / 20 |
 | partial / landscape | 82 / 34 / 0 / 84 | 82 / 34 / **16** / 84 | 82 / 34 / 20 / 84 | 82 / 34 / **52** / 84 |
 
-- `.safeArea()` は、`view.safeAreaInsets` と同じ値です。`.margins()` は `view.layoutMargins` と同じ値です
-- **`cornerAdaptation: .horizontal` を付けると、画面の角の丸みの分だけ、left / right が広がります。** 内側ディスプレイの角は 16pt です。外側ディスプレイは、向きで違います（portrait の左は 2.3pt、landscape の左は 17.3pt）。すでにバーで 84pt 取られている辺は、変わりません
-- `.safeArea(cornerAdaptation: .vertical)` は、全姿勢で `.safeArea()` と同じ値でした。`.margins(cornerAdaptation: .horizontal)` も、`.margins()` と同じ値でした。margin の 20pt が、角の丸みより大きいためと考えられます
-- `.readableContent()` は、landscape で left が 52（バーが左なら right が 52）になります。portrait の内側では 20 で、`.margins()` と同じです。読みやすい行の幅に収めるため、余白が広がっていると考えられます。この理由までは確認していません
+- `.safeArea()` = `safeAreaInsets`、`.margins()` = `layoutMargins`
+- **`cornerAdaptation: .horizontal`** は、左右を画面の角の丸み分だけ広げる（内側 16pt、外側は向きで 2.3 / 17.3pt。84pt のバー側は変わらない）
+- `.safeArea(cornerAdaptation: .vertical)` と `.margins(cornerAdaptation: .horizontal)` は、変化なし
+- `.readableContent()` は、landscape で 52（バーが左なら right が 52）。内側の portrait は 20（理由は未確認）
 
-**`.bar(onEdge:extent:)`** は、その辺にバーを置いたと仮定した領域を返します。`extent` を 84 にして、左の辺と右の辺で読みました。
+**`.bar(onEdge:extent:)`**（`extent` 84、左辺と右辺）:
 
 | 姿勢 | `.bar(onEdge: .left, extent: 84)` | `.bar(onEdge: .right, extent: 84)` |
 | --- | --- | --- |
@@ -919,9 +899,9 @@ view.cornerConfiguration = .uniformCorners(radius: .containerConcentric(minimum:
 | partial / portrait | 82 / 34 / **6** / 579 | 82 / 34 / 579 / **6** |
 | partial / landscape | 82 / 34 / **6** / 861 | **120** / 34 / 861 / **6** |
 
-- 領域の幅は、`extent` の 84pt です。画面の端から **6pt** 内側に置かれます（左の辺なら left が 6、right は「画面幅 − 6 − 84」です）
-- 右の辺では、top（や bottom）が大きくなる姿勢があります。closed / portrait で 170、open / landscape で 120、closed / landscape（バーが右）で bottom が 82 です。**これは、その辺にある `.occlusion` の領域の高さと一致します**（[実測: 領域の位置と margins](#実測-領域の位置と-margins)）。バーの領域が、カメラなどの領域を避けて置かれています
-- バーが左に出る closed / landscape の左の辺では、そのような食い込みはありません。左の辺の `.occlusion`（84×82）は、safe area の top（82）と同じ高さで、見分けられません
+- 幅は 84pt。画面の端から **6pt** 内側に置かれる
+- 右辺は、その辺の `.occlusion` を避ける（top が 170 / 120、bottom が 82。[実測: 領域の位置と margins](#実測-領域の位置と-margins)）
+- バーが左の closed / landscape の左辺は、`.occlusion`（84×82）と safe area の top が同じ高さで、見分けられない
 
 ## 16. カメラ用 scene accessory の登録（UIKit / iOS 27.1）
 
