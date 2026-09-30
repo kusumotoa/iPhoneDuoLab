@@ -127,6 +127,8 @@ private struct SheetBody: View {
                 ])
             }
         }
+        // `-annot 1` のとき、シートの外形・safe area・折り目を重ねる（docs の画像用）
+        .annotated(margins: false, outline: true)
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
     }

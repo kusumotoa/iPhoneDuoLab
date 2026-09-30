@@ -39,6 +39,7 @@ struct ContentView: View {
             }
             .navigationTitle("iPhone Duo Lab")
             .navigationDestination(for: Lab.self) { lab in
+                Group {
                 switch lab {
                 case .pose: PoseInspectorLab()
                 case .reservedRegions: ReservedRegionsLab()
@@ -53,6 +54,9 @@ struct ContentView: View {
                 case .cameraSplit: CameraSplitLab()
                 case .webView: WebViewLab()
                 }
+                }
+                // 表の値（NavigationStack の中で読んだ safe area）と同じ範囲に、印を重ねる
+                .annotated()
             }
         }
         .onAppear(perform: openLabFromLaunchArgument)

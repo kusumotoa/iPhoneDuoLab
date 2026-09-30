@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 470" width="900" height="470" font-family="-apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif">
+  <style>
+    .bg{fill:#fff}
+    .t{fill:#1a1a1a;font-size:14px;font-weight:600}
+    .n{fill:#5b636e;font-size:11.5px}
+    .c{fill:#1a1a1a;font-size:11.5px;font-family:ui-monospace,Menlo,monospace}
+    .screen{fill:#f2f4f7;stroke:#3d434d;stroke-width:1.5}
+    .safe{fill:#f5b7b7;fill-opacity:.7;stroke:#d64545}
+    .marg{fill:#a9d0ff;fill-opacity:.8;stroke:#2f80ed}
+    .read{fill:#b8e6b0;fill-opacity:.8;stroke:#3a9a2a}
+    .bar{fill:#ffd8a8;fill-opacity:.85;stroke:#e07a10;stroke-width:1.5}
+    .cam{fill:#c8ccd2;stroke:#7b8390;stroke-dasharray:4 3}
+    .dim{stroke:#1a1a1a;stroke-width:1}
+  </style>
+  <rect class="bg" width="900" height="470"/>
+  <text class="t" x="30" y="26">edgeInsets(for:) が返す矩形（closed / portrait、466 × 678pt を 0.5 倍で描画）</text>
+
+  <!-- 左: safeArea / margins / readableContent（左辺だけ比べる） -->
+  <text class="t" x="30" y="56">A. 左辺の inset の違い</text>
+  <g transform="translate(30,70)">
+    <rect class="screen" x="0" y="0" width="233" height="339"/>
+    <rect class="safe" x="0" y="0" width="233" height="41"/>            <!-- top 82 -->
+    <rect class="safe" x="0" y="322" width="233" height="17"/>         <!-- bottom 34 -->
+    <rect class="safe" x="191" y="41" width="42" height="281"/>        <!-- right 84 (バー) -->
+    <rect class="read" x="0" y="41" width="26" height="281"/>          <!-- readable 52 -->
+    <rect class="marg" x="0" y="41" width="10" height="281"/>          <!-- margins 20 -->
+    <text class="n" x="116" y="24" text-anchor="middle">上 82（safeArea 全部で共通）</text>
+    <text class="n" x="116" y="334" text-anchor="middle">下 34</text>
+    <text class="n" x="212" y="185" text-anchor="middle" transform="rotate(90 212 185)">右 84（バー）</text>
+  </g>
+  <g transform="translate(300,110)" class="c">
+    <rect class="marg" x="0" y="-9" width="14" height="10"/><text x="22" y="0">.margins()          左 20</text>
+    <rect class="read" x="0" y="21" width="14" height="10"/><text x="22" y="30">.readableContent()  左 52</text>
+    <rect class="safe" x="0" y="51" width="14" height="10"/><text x="22" y="60">.safeArea()         左 0</text>
+    <text x="0" y="90" class="n">上 82・下 34・右 84 は 3 つとも同じ</text>
+    <text x="0" y="112" class="n">.margins は safeArea に左右 20 を足したもの</text>
+    <text x="0" y="130" class="n">（右はバーがあるので足されない）</text>
+    <text x="0" y="158" class="n">cornerAdaptation: .horizontal は</text>
+    <text x="0" y="176" class="n">左を 2.3 に広げる（右のバー側は 84 のまま）</text>
+  </g>
+
+  <!-- 右: bar(onEdge:extent:) -->
+  <text class="t" x="640" y="56">B. .bar(onEdge:extent: 84)</text>
+  <g transform="translate(640,70)">
+    <rect class="screen" x="0" y="0" width="233" height="339"/>
+    <rect class="cam" x="191" y="0" width="42" height="85"/>            <!-- 予約領域 170 -->
+    <text class="n" x="212" y="45" text-anchor="middle">カメラ</text>
+    <rect class="bar" x="3" y="41" width="42" height="281"/>            <!-- left: 6, top 82, bottom 34, 幅 84 -->
+    <text class="c" x="24" y="185" text-anchor="middle" transform="rotate(-90 24 185)">.left  82 / 34 / 6</text>
+    <rect class="bar" x="188" y="85" width="42" height="237"/>          <!-- right: top 170, bottom 34 -->
+    <text class="c" x="209" y="205" text-anchor="middle" transform="rotate(90 209 205)">.right  170 / 34 / 6</text>
+    <text class="n" x="116" y="24" text-anchor="middle">safe area の上 82</text>
+    <line class="dim" x1="3" y1="335" x2="45" y2="335"/><text class="n" x="24" y="330" text-anchor="middle">84</text>
+  </g>
+  <g transform="translate(30,438)" class="n">
+    <text x="0" y="0">左辺は safe area の内側（上 82）から始まる。右辺は上のカメラ領域（170）を避けて、その下から始まる。</text>
+    <text x="0" y="18">どちらも、画面の端から 6pt 内側に置く。</text>
+  </g>
+</svg>
