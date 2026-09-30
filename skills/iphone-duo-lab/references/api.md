@@ -41,7 +41,7 @@ ArrangementView {
 | `.split` | `SplitArrangementViewStyle` | あり |
 | `.overlay` | `OverlayArrangementViewStyle` | あり |
 
-- split: 横長なら水平、縦長なら垂直に分割。`axes` で軸を制限でき、その軸が主軸に合わない場合は単一ビューになる
+- split: landscape では左右（`.horizontal`）、portrait では上下（`.vertical`）に分割。closed / landscape は分けず primary だけ。`axes` で軸を制限でき、その姿勢で使えない軸を指定すると単一ビュー（primary だけ）になる。折り目があると、2 つの間に 40pt の空きができる
 - overlay: 通常は primary が secondary の上に重なる。部分的に開くと横並びを優先し、primary が折り目に対して trailing / bottom 側、secondary が leading / top 側になる
 - 移行の目安: `HStack` / `VStack` → split、`ZStack` → overlay
 
@@ -84,14 +84,16 @@ extension GeometryProxy {
 struct ReservedRegion: Equatable, Hashable, Identifiable, Sendable {
     var id: ReservedRegion.ID
     var kind: ReservedRegion.Kind      // .division（折り目）/ .occlusion（カメラ）の 2 つだけ。struct の static プロパティ
-    var frame: CGRect
+    var frame: CGRect                  // margins を含んだ矩形（UIKit ヘッダの説明）。実体は frame から margins を引いたもの
     var margins: EdgeInsets
     var isActive: Bool
 }
 // QueryOptions は OptionSet で .includeInactive のみ
 ```
 
-UIKit: `UIView.reservedRegions(kind:options:)`（`layoutDirectionBehavior` 引数はない）。`UIView._boundaryLayoutRegions` は iOS 27.0 で deprecated。
+UIKit: `UIView.reservedRegions(kind:options:)`（`layoutDirectionBehavior` 引数はない）。`UIView._boundaryLayoutRegions` は iOS 27.0 で deprecated。SwiftUI と UIKit は同じ矩形を返す（UIKit の座標は画面の左上が原点で、SwiftUI に safe area の top / leading を足した値）。
+
+アクティブになる条件の実測: `.division` は partially folded のときだけアクティブ（open では非アクティブで存在、closed では 0 件）。`.occlusion` は、closed で外側の 2 件がアクティブ、open と partial ではアクティブが 1 件と、非アクティブの内側カメラが 1 件。内側カメラの領域の位置は、端末の向きで 180° 回る。
 
 `Kind` は enum ではないので `switch` の網羅性チェックが効きません。`default` を残してください。
 
@@ -104,7 +106,7 @@ extension View {
 }
 struct DeviceHinge: Hashable, Sendable {
     var status: DeviceHinge.Status     // .closed / .partiallyOpen / .fullyOpen（unknown はない）
-    var angle: Angle                   // SwiftUI の Angle。0°〜180°
+    var angle: Angle                   // SwiftUI の Angle。0°〜180°（UIKit は CGFloat の radians）
 }
 struct DeviceHingeContext: Equatable, Sendable {
     var hinge: DeviceHinge?            // ヒンジのない端末では nil。必ず確認する
@@ -113,7 +115,9 @@ struct DeviceHingeContext: Equatable, Sendable {
 
 型名は **`DeviceHinge` / `DeviceHingeContext`**（`Hinge` という型はない）。ヒンジを読む EnvironmentValues はなく、`onHingeChange` だけです。
 
-UIKit: `UIHinge`（`status: UIHingeStatus`、`angle: CGFloat`。`UIHingeStatus` には `.unknown` がある）、`UIHingeInteraction`（`init(updateHandler:)`、`isEnabled`、`Update.hinge: UIHinge?`）。
+実測: 最初の通知は `oldContext.hinge == nil`。`status` が切り替わる角度は、開くときと閉じるときで違う（開くとき closed は 19.4° まで・partiallyOpen は 22.6° から、閉じるとき partiallyOpen は 93.5° まで・closed は 82.7° から）。角度から `status` を計算せず、`status` を使う。`fullyOpen` は 180.0° のときだけ。通知の間隔は一定ではない。**止まったあとに、同じ値の通知が続けて届くことがある**（partial で 9 回）ので、値が同じなら処理を省く。
+
+UIKit: `UIHinge`（`status: UIHinge.Status`、`angle: CGFloat` の **radians**。`UIHinge.Status` には `.unknown` がある。Swift では `UIHingeStatus` はリネーム済みで、そのままではコンパイルエラー）、`UIHingeInteraction`（`init(updateHandler:)`、`isEnabled`、`Update.hinge: UIHinge?`）。
 
 ## 4. ツールバーの垂直配置
 
@@ -151,7 +155,7 @@ UIKit:
 ## 5. 余白と領域
 
 ```swift
-// SwiftUI（iOS 27.1）— layoutMarginsGuide 相当
+// SwiftUI（iOS 27.1）— layoutMarginsGuide に近い（safe area の外側に足す余白だけを返す。safe area の分は含まない）
 struct ContentMarginGuide { static var container: ContentMarginGuide }
 func contentMargins(for guide: ContentMarginGuide, edges: Edge.Set = .all, alignment: Alignment? = nil) -> some View
 extension GeometryProxy { func contentMargins(for guide: ContentMarginGuide, edges: Edge.Set = .all) -> EdgeInsets }
@@ -170,6 +174,10 @@ extension UIView.LayoutRegion {
     static func bar(onEdge edge: NSDirectionalRectEdge, extent: CGFloat) -> UIView.LayoutRegion
 }
 ```
+
+`GeometryProxy.contentMargins(for: .container)` は、UIKit の `layoutMargins` から `safeAreaInsets` を引いた値（`systemMinimumLayoutMargins`）を返す。水平方向だけ値があり、leading は 20、trailing は 20（バーが trailing にあるときは 0）。垂直方向は 0。`View.contentMargins(for:edges:alignment:)` は、全面に広げたビューを margin の分だけ内側へ寄せる（固定サイズのビューは動かず、`alignment` の効果は確認できなかった）。
+
+`UIView.LayoutRegion` の実測: `.safeArea()` は `safeAreaInsets`、`.margins()` は `layoutMargins` と同じ値。`cornerAdaptation: .horizontal` は、左右の inset を画面の角の丸み（内側 16pt）の分だけ広げる（すでに 84pt のバー側は変わらない）。`bar(onEdge:extent:)` は、画面の端から 6pt 内側に置かれ、その辺にあるカメラなどの領域（170pt、120pt、82pt の高さ）を避けた位置になる。
 
 `bar(onEdge:extent:)` は自作のタブバーを垂直バーの寸法に合わせるための API です（ヘッダのコメント: "Returns a bar layout region of a given extent on a given edge."、1 領域につき 1 辺）。Group Lab では存在だけが案内され、解説資料では名前を特定できていませんでした。独自のタブバーにシステムのタブバーと同じ挙動を与える API はないので、先に `UITabBarController` / `TabView` への置き換えを検討してください。
 
@@ -191,7 +199,7 @@ UIBackgroundExtensionView                  // UIKit
 UISheetPresentationController.preferredPlacement   // UIKit
 ```
 
-シートにだけ効き、ポップオーバーには効きません。内側ディスプレイでは centered / leading 配置なら水平バー、trailing 配置なら垂直バーになります。
+シートにだけ効き、ポップオーバーには効きません。実測では、効くのは**内側の landscape で `.trailing` を指定したときだけ**で、シートに垂直バー（76pt）が付いて幅が縮みます（653 → 577）。`.automatic` は `.center` と同じ結果で、`.leading` は左端、`.center` は中央に出ます。外側（closed）と、内側の portrait では、4 つの値で結果が変わりません。
 
 ## 8. タブバーのサイドバー化（iOS 27.0）
 

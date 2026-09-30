@@ -256,7 +256,7 @@ vertical が compact になるのは closed / landscape だけです。内側は
 
 - 垂直バーの幅は 84.0 pt です。safe area がバー側に 84.0、content margins が逆側に 20.0 という構造で、左右を足しても常に同じ値にはなりません。「片側の値を反対側に流用しない」という指針が、数値で裏付けられました
 - 内側ディスプレイの portrait では垂直バーが出ません（`toolbarVerticalEdge` が nil、safe area の左右が 0 / 0）。記事にあった例外を、実測で確認できました
-- closed / landscape には、バーが左に出る向きと右に出る向きがあります。バーは物理的に同じ辺にあるため、向きで leading / trailing が入れ替わります。`toolbarVerticalEdge` を見ずに trailing 固定で組むと破綻します
+- closed / landscape には、バーが左に出る向きと右に出る向きがあり、向きで leading / trailing が入れ替わります。`toolbarVerticalEdge` を見ずに trailing 固定で組むと破綻します。内側の landscape では、測った 2 つの向き（内側カメラの領域が上にある向きと下にある向き）の両方で、trailing でした
 - `division` は partially folded のときだけアクティブです。fully open では非アクティブとして存在し、closed では存在しません
 - `occlusion` は、closed で 2 件（外側のカメラ）がアクティブです。open と partial では、アクティブな 1 件（ステータス表示の領域）と、非アクティブの 1 件（内側カメラ）です
 - safe area の top は、大タイトル展開時 82.0 で、スクロールして inline に縮むと 24.0 になります（`GeometryReader` を `List` の外に置いているため、タイトルの状態を拾います）

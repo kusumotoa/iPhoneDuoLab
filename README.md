@@ -44,6 +44,7 @@ skills/iphone-duo-lab/
     ├── measurements.md      6 姿勢の実測値、対応する / しないの差
     ├── simulator.md         Device Hub の操作と自動操作の制約
     ├── migration.md         既存 UIKit アプリで踏んだ不具合、探し方、レビュー観点
+    ├── webview.md           WebView に表示するページの safe area
     ├── camera.md            2 つの前面カメラと coordinator
     └── checklist.md         移行チェックリスト
 ```

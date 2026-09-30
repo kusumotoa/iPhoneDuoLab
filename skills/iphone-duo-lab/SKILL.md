@@ -1,6 +1,6 @@
 ---
 name: iphone-duo-lab
-description: iPhone Duo（2 画面・折りたたみの iPhone、iOS 27.1）対応を、iOS 27.1 SDK とシミュレータで実際に確かめた事実に基づいて実装・レビュー・検証するためのスキル。SDK で実在を確認した API シグネチャ、6 姿勢の実測値（safe area・垂直バー幅 84pt など）、Device Hub シミュレータの自動操作（ヒンジ角度の変更、AX での値の読み取り）、既存 UIKit アプリの移行で実際に踏んだ不具合と探し方を持つ。iPhone Duo、折りたたみ、内側／外側ディスプレイ、垂直バー、ヒンジ、reserved region、ArrangementView、Device Hub、extendedLayoutIncludesOpaqueBars で本文が白い、といった話題が出たら必ず使うこと。iPhone Duo という語がなくても、iOS 27 系での safe area の左右非対称、バーが側面に移る、開閉でレイアウトが崩れる、既存アプリの Duo 対応コードのレビュー依頼などでも使う。
+description: iPhone Duo（2 画面・折りたたみの iPhone、iOS 27.1）対応を、iOS 27.1 SDK とシミュレータで実際に確かめた事実に基づいて実装・レビュー・検証するためのスキル。SDK で実在を確認した API シグネチャ、6 姿勢の実測値（safe area・垂直バー幅 84pt など）、Device Hub シミュレータの操作（姿勢ボタンと回転ボタン、向きの確認、Lab の JSON で値を読む方法）、既存 UIKit アプリの移行で実際に踏んだ不具合と探し方を持つ。iPhone Duo、折りたたみ、内側／外側ディスプレイ、垂直バー、ヒンジ、reserved region、ArrangementView、Device Hub、extendedLayoutIncludesOpaqueBars で本文が白い、といった話題が出たら必ず使うこと。iPhone Duo という語がなくても、iOS 27 系での safe area の左右非対称、バーが側面に移る、開閉でレイアウトが崩れる、既存アプリの Duo 対応コードのレビュー依頼などでも使う。
 ---
 
 # iPhone Duo 対応（実測ベース）
@@ -42,9 +42,10 @@ swiftc -typecheck -parse-as-library -sdk "$SIM" -target arm64-apple-ios27.1-simu
 | --- | --- | --- |
 | `references/api.md` | SDK で実在を確認した API のシグネチャ、availability、SwiftUI / UIKit 対応表 | コードを書く・レビューするとき |
 | `references/design.md` | size class、safe area、垂直バー、シート、reserved regions、姿勢の作り込み、複数ディスプレイとシーン、scene accessory の設計（HIG の原文つき） | レイアウトや画面構成の方針を決めるとき |
-| `references/measurements.md` | 6 姿勢の実測値、対応する / しないの差（26 SDK と 27.1 SDK の比較） | 数値で説明・判断するとき |
-| `references/simulator.md` | 開発環境と SDK ごとの挙動、Device Hub の操作、ヒンジ角度の変え方、AX で値を読む方法、自動操作の制約 | ビルド環境を決める・シミュレータで確かめるとき |
+| `references/measurements.md` | 6 姿勢の実測値、API ごとの実測の要約、対応する / しないの差（26 SDK と 27.1 SDK の比較） | 数値で説明・判断するとき |
+| `references/simulator.md` | 開発環境と SDK ごとの挙動、Device Hub の操作、姿勢ボタンと回転ボタン（上下逆の向きも通る）、向きの確かめ方、値の読み方、自動操作の制約 | ビルド環境を決める・シミュレータで確かめるとき |
 | `references/migration.md` | 既存 UIKit アプリで踏んだ不具合（症状→原因の表）、探すための grep、レビュー観点 | 既存アプリを移行する・移行コードをレビューするとき |
+| `references/webview.md` | WebView に表示するページの safe area。safe area の内側に置く方法と、広げて `viewport-fit=cover` と `env(safe-area-inset-*)` で避ける方法、4 つの置き方の実測 | WebView を使う画面を対応させるとき |
 | `references/camera.md` | 2 つの前面カメラ、direction / rotation coordinator、ミラーリング | カメラを扱うとき |
 | `references/checklist.md` | 移行チェックリスト | 抜け漏れを確認するとき |
 
@@ -55,6 +56,7 @@ swiftc -typecheck -parse-as-library -sdk "$SIM" -target arm64-apple-ios27.1-simu
 - **safe area は左右非対称になる前提で書く。** 垂直バーは 84pt で片側にだけ付き、回転すると leading / trailing が入れ替わる。片側の値を反対側に流用しない
 - **標準コンポーネントを使う。** `UINavigationController` / `UITabBarController`（`NavigationStack` / `TabView`）が提供するバーだけが垂直になる。`UIToolbar` / `UINavigationBar` / `UITabBar` を直接置いたものは水平のまま
 - **抽象度の高い API から選ぶ。** システムコンポーネント → arrangement view → reserved regions → ヒンジ角度の順。ヒンジ角度はインタラクションやエフェクト用で、レイアウトの決定には使わない
+- **測定や撮影の前に、向きを値で確かめる。** 回転ボタンは上下逆の向きも通り、`simctl` の画像は向きによらず文字が読める向きで保存される。位置は `onGeometryChange` の frame ではなく、画素で測る（`references/simulator.md`）
 - **姿勢ごとに作り込みすぎない。** すべての姿勢に専用 UI を作るのは Apple 自身が失敗例として挙げている。まず 27.1 SDK でビルドし直すだけで大半は良くなる（非対応だと内側でも 375×517pt の窓に閉じ込められ、size class も compact のまま）
 
 ## 回答の仕方

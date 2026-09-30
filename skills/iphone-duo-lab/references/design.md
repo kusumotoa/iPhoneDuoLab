@@ -51,7 +51,7 @@ size class の `if` で分岐ごとに別のコンテナ（`NavigationSplitView`
 ## safe area と余白
 
 - 垂直バーは片側にだけ付く。実測で幅は **84pt**。safe area がバー側に 84、content margins は逆側に 20 と、左右がそろわない
-- バーはハードウェアに対して位置を保つ。**回転すると leading / trailing が入れ替わる**（閉じた状態で右に回すと leading 側）。Split View では左側のアプリの垂直バーは左端に付く。RTL 言語でも同じ側に留まる
+- **バーの辺は、向きで変わる。** 閉じた状態（外側）の landscape には、バーが左に出る向きと右に出る向きがあり、leading / trailing が入れ替わる。内側の landscape では、測った 2 つの向きの両方で trailing だった。Split View では左側のアプリの垂直バーは左端に付く。RTL 言語でも同じ側に留まる
 - 内側の portrait（fully open / partially folded とも）では垂直バーが出ない
 - `view.bounds.width - safeAreaInsets.left * 2` のように片側を 2 倍する書き方が典型的な壊れどころ。`view.bounds.inset(by: view.safeAreaInsets)` のように各辺を個別に扱う
 - 配置の原則は「**操作要素と前景は safe area の内側、背景はその外側（バーの背後）まで**」。HIG: "You can also combine both approaches, letting a background image or header span the full width while scrollable content stays inset."
@@ -79,8 +79,9 @@ HIG: "On iPhone Duo, toolbars, tab bars, and navigation controls that are typica
 
 ## シート
 
-- 外側では既定で操作部が側面。内側では centered / leading 配置なら水平バー、trailing 配置なら垂直バー
-- 垂直バーを無効にしたシートは前面カメラの手前までを使い、ステータスバーも再配置される
+- 外側のシートには、垂直バー（76pt）が付く。内側では、centered / leading 配置なら水平バー。trailing 配置は、**内側の landscape でだけ**垂直バーが付き、幅が 76pt 縮む（portrait では変わらない）
+- 垂直バーを無効にしたシートは、外側では幅が 76pt 広がり、高さが 82pt 縮む。内側の landscape では高さが 82pt 縮み、幅は変わらない。前面カメラの手前までを使い、ステータスバーも再配置されると説明されているが、高さが縮む理由は確認していない
+- **シートが折り目を避けて片側に寄るのは、partially folded / landscape（折り目が縦帯）だけ。** partially folded / portrait（折り目が横帯）では、折り目をまたいで全面に近い大きさで出る
 - 地図のように背後を見せたい場合は `presentationPlacement(_:)` / `preferredPlacement`
 - シートのバーが垂直になるかはシートの内容で決まり、端末を回しても基本的にはその選択が続く（Group Lab の目安で、断定はされていない）。書き込みツールのようにコントロールが主役のシートは、垂直バーがかえって操作の場所を狭めるので水平のほうが向くことがある
 - 地図の上にシートを重ね、その中にタブバーを置く構成（Find My など）: タブがシートの中身を切り替えているなら、広い画面でもタブバーとシートは一緒にしておく。タブごとに別のシートを持つ構成なら分ける選択肢がある
@@ -90,10 +91,10 @@ HIG: "On iPhone Duo, toolbars, tab bars, and navigation controls that are typica
 | 領域 | kind | 存在する条件 |
 | --- | --- | --- |
 | 外側の前面カメラ | `.occlusion` | 常に存在。Live Activities では Dynamic Island へ広がる |
-| 内側の前面カメラ | `.occlusion` | カメラが作動しているときだけ |
-| 折り目 | `.division` | 部分的に開いているとき。平らなときは非アクティブで幅 0 |
+| 内側の前面カメラ | `.occlusion` | カメラが作動しているときだけ（資料の記述。カメラのないシミュレータでは未確認。非アクティブの領域としては、open / partial で `.includeInactive` により取れる） |
+| 折り目 | `.division` | 部分的に開いているときだけアクティブ。open では非アクティブで存在し、実体の幅は 0（frame の 40pt は margins）。closed では存在しない |
 
-- **折り目を自動で避けるのはシステムコンポーネント**（アラート、コンテキストメニュー、シート、ツールバーボタン。分割ビューは列幅を対称に調整し、部分的に折ると 50/50 になる）。**スクロール可能なコンテンツは折り目を避ける必要がない**
+- **折り目を自動で避けるのはシステムコンポーネント**（アラート、コンテキストメニュー、シート、ツールバーボタン。分割ビューは列幅を対称に調整し、部分的に折ると 50/50 になる）。実測では、シートとアラートが避けるのは landscape（縦帯）だけで、portrait（横帯）ではシートは折り目をまたいだ。コンテキストメニューとツールバーボタンは実測していない。**スクロール可能なコンテンツは折り目を避ける必要がない**
 - 自前の部品で避ける必要があるときだけ reserved regions を使う。例: 購入・カートへ追加のような収益に直結するボタンが折り目に重なるとき
 - displacement（要素の移動）は設計パターンで、専用 API はない。独立した要素は単独で、連携する要素は一緒に動かす。過度に動かさない。記事・フィード・リストなど連続スクロールのコンテンツは領域間で動かさない
 - HIG: "**Avoid extreme layout changes as people fold the device.** Move only what's necessary..."

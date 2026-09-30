@@ -28,30 +28,63 @@ Xcode 27.1 Beta の iPhone Duo シミュレータ（iOS 27.1）で実際に操�
 
 ## 姿勢の変え方
 
-**姿勢はデバイス画面の下部バー右端にある「ヒンジ角度のスライダー」で変える。** 値域は 0〜180 で、そのまま `DeviceHinge.angle` に対応します。
+**姿勢は、デバイス画面の下部バーにある 3 つの姿勢ボタンと、回転ボタンで変える。**
 
-| 値 | 姿勢 |
-| --- | --- |
-| 0 | closed |
-| 中間（127.5 前後で実測） | partially folded |
-| 180 | fully open |
+| ボタン | 役割 | 作れる姿勢 |
+| --- | --- | --- |
+| グリッド / カメラ / 丸 | App Switcher / スクリーンショット / 録画 | 姿勢とは関係ない |
+| 回転 | 画面の向きを 90° ずつ回す | 4 つの向きを一周する |
+| 電話型 | closed | ヒンジ 0.0° |
+| 本型 | partially folded | ヒンジ 約 128°（127.5〜128.0° で回により違う） |
+| 平らな画面 | fully open | ヒンジ 180.0° |
 
-- 連続値なので任意の折り具合を作れる。姿勢そのものだけでなく、途中の状態も確認する
-- 下部バーの他の 4 ボタンは App Switcher / スクリーンショット / 録画 / Enter Resize Mode で、姿勢とは関係ない
+- 以前の記録では 0〜180 のスライダーとされていたが、この DeviceHub（Xcode 27.1 Beta 27A9269）の下部バーには見当たらない。角度を途中で止めることはできず、ボタンを押すと遷移のアニメーションで動き、途中の値が `onHingeChange` に届く
+- 以前の記録では 4 番目のボタンを Enter Resize Mode としていたが、押すと画面の向きが 90° 回った
 - **メニューに姿勢の項目はない。** Controls メニューは Home / Lock / Siri / App Switcher / Action Button / Screenshot / Record Screen だけ。`simctl` にも手段はない
-- 解説資料には「book / laptop / tent などのプリセットを選べる」とあるが、この環境ではスライダー以外に見つかっていない（More Actions メニューの中は未確認）
-- 折ると強制的に landscape になる。折った portrait は、折ってから回転させて作る
-- シミュレータで再現できないのは内側と外側を同時に点灯させる状態（カメラが要るため）
+- シミュレータで再現できないのは、内側と外側を同時に点灯させる状態と、カメラが動作している状態（カメラが 1 台もない）
+- 姿勢ボタンを押した直後の向きは、直前の向きで決まる。毎回同じにはならない
+
+### 回転ボタンは上下逆の向きも通る
+
+回転ボタンは 4 つの向きを一周し、**上下が逆になった向きも通る**（closed / portrait でバーが左に出て、文字が逆さまに見える）。押した回数で向きが決まるので、測定や撮影の前に、値で向きを確かめる。
+
+- closed では `verticalBarEdge`（portrait でバーが右なら通常の向き）で確かめる。closed / landscape には、バーが左の向きと右の向きがある
+- 内側ディスプレイでは、**内側カメラの領域（`.occlusion`、非アクティブ）の位置**が目印になる。180° 離れた 2 つの向きで、位置が 180° 回る
+- **`simctl io screenshot` の画像は、上下が逆の向きで撮っても、文字が読める向きで保存される。** 画像の見た目だけでは、撮った向きが分からない
+- 測定のあとは、通常の向き（closed / portrait でバーが右）に戻しておく
+
+### 別の Xcode で作業しながら使う
+
+`xcode-select` を切り替えず、コマンドごとに `DEVELOPER_DIR` を指定する。別の作業の Xcode に影響しない。
+
+```sh
+export DEVELOPER_DIR=/Applications/Xcode-27.1.0-Beta.app/Contents/Developer
+```
+
+DeviceHub で、別のシミュレータを表示しているウィンドウは、表示を切り替えない。`File > New Window` で新しいウィンドウを開き、サイドバーで iPhone Duo を選ぶ。
 
 ### 自動で操作する
 
-**AX でスライダーの `AXValue` を書き換えても効かない。** 値は変わったように見えるがシミュレータに反映されない。CGEvent（`leftMouseDown` → 補間しながら `leftMouseDragged` → `leftMouseUp`）で実際にドラッグする必要がある。
+姿勢ボタンと回転ボタンは、座標を指定したクリックで押せる。バックグラウンドのクリックは、ウィンドウの一部が Dock などに隠れていると拒否される。その場合は、ウィンドウを前面に出して押す。
 
-- スライダーは DeviceHub の AX ツリーで `AXMaxValue` が 180 の `AXSlider` として見つかる
-- つまみ（`AXValueIndicator`）の幅があるため、トラックの有効範囲は「スライダーの左端 + つまみ幅の半分」から「右端 − つまみ幅の半分」
-- ドラッグはマウスを実際に動かす。ユーザーが操作中でないことを確認してから行う
+- 内側ディスプレイのアプリには、タッチが届かない（下の「タッチ操作の制約」）。ただし、**システムのアラート（カメラの許可ダイアログなど）は、DeviceHub 上のクリックで押せた**
+- ユーザーが操作中でないことを確認してから行う
 
 ## 値を読む
+
+**いちばん確実なのは、Lab が値をアプリのコンテナへ JSON で書き出し、`simctl get_app_container` で読む方法。** AX ツリーは大きく、取得に時間がかかる。
+
+```sh
+DATA=$(xcrun simctl get_app_container <UDID> <バンドル ID> data)
+xcrun simctl launch <UDID> <バンドル ID> -lab apiValues     # Lab を直接開く
+sleep 3 && cat "$DATA/Documents/api-values.json"
+```
+
+内側ディスプレイにはタッチが届かないので、Lab は起動引数（`-lab <名前>`）で直接開く。WebView の Lab は、WebKit の初回起動に 3〜6 秒かかるので、7 秒待つ。
+
+**位置は、`onGeometryChange` の frame ではなく、スクリーンショットの画素で測る。** frame は `.ignoresSafeArea()` や `.contentMargins(for:)` による見た目の変化を反映しない（x 20–867 に描かれたビューの frame が `0–867` と報告された）。測りたいビューに固有の色を付けて撮り、その色の外接矩形を、画像のピクセル ÷ 3 で求める。
+
+AX でも読める（下）。
 
 **DeviceHub の AX ツリーには、シミュレータ内で動いているアプリの要素がそのまま現れる。** `AXStaticText` の description にアプリの表示文字列が入るので、スクリーンショットを読まずに値を取れる（System Events で `process "DeviceHub"` のウインドウの `entire contents` を走査する）。数値の読み違いが起きないので、計測にはこちらが確実です。
 
@@ -67,7 +100,7 @@ AXButton desc=共有
 ## スクリーンショット
 
 ```sh
-xcrun simctl io <udid> enumerate                          # Display class 0 のポートが 2 つ（内側と外側）
+xcrun simctl io <udid> enumerate                          # Display のポートが複数見える。1398 px 幅が外側、2007 px 幅が内側
 xcrun simctl io <udid> screenshot --display <UUID> out.png
 ```
 
@@ -78,7 +111,7 @@ xcrun simctl io <udid> screenshot --display <UUID> out.png
 
 ## タッチ操作の制約
 
-- **内側ディスプレイにはタッチが届かない。** tap も scroll も成功を返すのに何も起きない。閉じた状態で画面遷移とスクロール位置を作ってから開く・折る
+- **内側ディスプレイのアプリには、タッチが届かない。** tap も scroll も成功を返すのに何も起きない。画面遷移とスクロール位置は、閉じた状態で作ってから開く・折るか、起動引数（`-lab <名前>` など）で直接開く
 - 読み取り（AX）は全姿勢で動く
 
 ## ビルドと型チェック
