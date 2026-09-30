@@ -34,6 +34,8 @@ struct ArrangementViewLab: View {
     @State private var edge: String?
     /// `overlayArrangementEdge` を付ける場所（`-arrEdgeOn secondary|primary|container`）。既定は secondary。
     @State private var edgeOn = "secondary"
+    /// 片方を固定サイズのカードにする（`-arrCard primary|secondary`。`1` は primary）。
+    @State private var card: String?
 
     private var axes: Axis.Set? { axisOverride ?? (constrainAxis ? .vertical : nil) }
 
@@ -67,14 +69,15 @@ struct ArrangementViewLab: View {
         opaque = value("-arrOpaque") == "1"
         edge = value("-arrEdge")
         edgeOn = value("-arrEdgeOn") ?? "secondary"
+        card = value("-arrCard")
     }
 
     @ViewBuilder
     private var arrangement: some View {
         let view = ArrangementView {
-            edged(ZIndexPane(title: "primary", color: .blue, opaque: opaque), when: "primary")
+            edged(ZIndexPane(title: "primary", color: .blue, opaque: opaque, fixedSize: card == "primary" || card == "1" ? CGSize(width: 260, height: 160) : nil), when: "primary")
         } secondary: {
-            edged(ZIndexPane(title: "secondary", color: .orange, opaque: opaque), when: "secondary")
+            edged(ZIndexPane(title: "secondary", color: .orange, opaque: opaque, fixedSize: card == "secondary" ? CGSize(width: 260, height: 160) : nil), when: "secondary")
         }
         .modifier(EdgeModifier(edge: edgeOn == "container" ? edge : nil))
 
@@ -126,26 +129,41 @@ private struct EdgeModifier: ViewModifier {
     }
 }
 
-/// ペイン。`overlayArrangementZIndex`（overlay のときの重なり順）を読んで表示・記録する。
+/// ペイン。`fixedSize` があれば、その大きさのカードにする。
+/// `overlayArrangementZIndex` は、**ペインの根のビューでは常に 0** なので、中の子ビュー（`ZLabel`）で読む。
 private struct ZIndexPane: View {
     let title: String
     let color: Color
     let opaque: Bool
+    var fixedSize: CGSize?
+
+    var body: some View {
+        let fill = color.opacity(opaque ? 0.85 : 0.28)
+        if let fixedSize {
+            fill
+                .overlay { ZLabel(title: title, tint: opaque ? .white : color) }
+                .clipShape(.rect(cornerRadius: 16))
+                .frame(width: fixedSize.width, height: fixedSize.height)
+        } else {
+            fill.overlay { ZLabel(title: title, tint: opaque ? .white : color) }
+        }
+    }
+}
+
+/// `overlayArrangementZIndex` を読んで、表示・記録する子ビュー。
+private struct ZLabel: View {
+    let title: String
+    let tint: Color
     @Environment(\.overlayArrangementZIndex) private var zIndex
 
     var body: some View {
-        GeometryReader { proxy in
-            color.opacity(opaque ? 0.85 : 0.28)
-                .overlay {
-                    VStack(spacing: 4) {
-                        Text(title).font(.headline)
-                        Text("zIndex \(zIndex)").font(.subheadline.monospacedDigit())
-                    }
-                    .foregroundStyle(opaque ? .white : color)
-                }
-                .onChange(of: zIndex, initial: true) { _, value in
-                    ValueRecorder.shared.merge(["arrangement.\(title).zIndex": "\(value)"])
-                }
+        VStack(spacing: 4) {
+            Text(title).font(.headline)
+            Text("zIndex \(zIndex)").font(.subheadline.monospacedDigit())
+        }
+        .foregroundStyle(tint)
+        .onChange(of: zIndex, initial: true) { _, value in
+            ValueRecorder.shared.merge(["arrangement.\(title).zIndex": "\(value)"])
         }
     }
 }
