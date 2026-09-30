@@ -70,7 +70,8 @@
 - [ ] ヒンジの状態は `status` で判断し、角度から自分で計算しない。開くときと閉じるときで、`status` が切り替わる角度が違う
 - [ ] UIKit の `UIHinge.angle` は radians。SwiftUI の `Angle` と単位を混同しない
 - [ ] `onHingeChange` は、同じ値の通知が続けて届くことがある（partial に止まったあとに 9 回）。値が前回と同じなら処理を省く
-- [ ] `ArrangementView` の `.overlay` は、partially folded のときだけ分かれ、**secondary が左（縦なら上）、primary が右（縦なら下）** に来る。`.split` とは逆
+- [ ] `ArrangementView` の `.overlay` は、partially folded のときだけ分かれ、**secondary が左（縦なら上）、primary が右（縦なら下）** に来る。`.split` とは逆。折らない姿勢で浮くのは **primary**（secondary は背景）
+- [ ] `overlayArrangementZIndex` は、ペインの根のビューでは常に 0。子ビューで読む
 - [ ] シートは、partially folded / **portrait では折り目をまたぐ**。折り目の左側に収まるのは landscape だけ
 - [ ] `reservedRegions(kind: .division)` で折り目を避ける（自前のオーバーレイのみ。スクロールコンテンツは避ける必要なし）
 - [ ] `reservedRegions(kind: .occlusion)` でカメラ領域を避ける
