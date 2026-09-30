@@ -116,12 +116,59 @@ func axes(_ axes: Axis.Set) -> SplitArrangementViewStyle
 移行の目安は、`HStack` / `VStack` なら `.split`、`ZStack` なら `.overlay` です。前景と背景の関係が明確なら overlay を選びます。主内容と詳細のどちらも隠したくないなら split を選びます。
 
 ### 実測: ペインの位置
-
 青い primary と橙の secondary を入れて、各ペインの範囲を画素から測りました（pt、**画面の左上が原点**。`GeometryReader` の座標にするには、y から 82 を引く）。
 
 **P** = primary、**S** = secondary、**単** = primary だけ、**重** = 全面で重なる。
 
-`.automatic` は `.split` と同じ結果でした。
+**`.split`（`.automatic` も同じ結果）**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/arrangement/split-closed-portrait.png" width="200"> | <img src="assets/shots/arrangement/split-closed-landscape.png" width="200"> | <img src="assets/shots/arrangement/split-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/arrangement/split-open-landscape.png" width="200"> | <img src="assets/shots/arrangement/split-partial-portrait.png" width="200"> | <img src="assets/shots/arrangement/split-partial-landscape.png" width="200"> |
+
+**`.split.axes(.vertical)`**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/arrangement/split-v-closed-portrait.png" width="200"> | <img src="assets/shots/arrangement/split-v-closed-landscape.png" width="200"> | <img src="assets/shots/arrangement/split-v-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/arrangement/split-v-open-landscape.png" width="200"> | <img src="assets/shots/arrangement/split-v-partial-portrait.png" width="200"> | <img src="assets/shots/arrangement/split-v-partial-landscape.png" width="200"> |
+
+**`.split.axes(.horizontal)`**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/arrangement/split-h-closed-portrait.png" width="200"> | <img src="assets/shots/arrangement/split-h-closed-landscape.png" width="200"> | <img src="assets/shots/arrangement/split-h-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/arrangement/split-h-open-landscape.png" width="200"> | <img src="assets/shots/arrangement/split-h-partial-portrait.png" width="200"> | <img src="assets/shots/arrangement/split-h-partial-landscape.png" width="200"> |
+
+**`.overlay`**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/arrangement/overlay-closed-portrait.png" width="200"> | <img src="assets/shots/arrangement/overlay-closed-landscape.png" width="200"> | <img src="assets/shots/arrangement/overlay-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/arrangement/overlay-open-landscape.png" width="200"> | <img src="assets/shots/arrangement/overlay-partial-portrait.png" width="200"> | <img src="assets/shots/arrangement/overlay-partial-landscape.png" width="200"> |
+
+**`.overlay.axes(.vertical)`**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/arrangement/overlay-v-closed-portrait.png" width="200"> | <img src="assets/shots/arrangement/overlay-v-closed-landscape.png" width="200"> | <img src="assets/shots/arrangement/overlay-v-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/arrangement/overlay-v-open-landscape.png" width="200"> | <img src="assets/shots/arrangement/overlay-v-partial-portrait.png" width="200"> | <img src="assets/shots/arrangement/overlay-v-partial-landscape.png" width="200"> |
+
+**`.overlay.axes(.horizontal)`**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/arrangement/overlay-h-closed-portrait.png" width="200"> | <img src="assets/shots/arrangement/overlay-h-closed-landscape.png" width="200"> | <img src="assets/shots/arrangement/overlay-h-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/arrangement/overlay-h-open-landscape.png" width="200"> | <img src="assets/shots/arrangement/overlay-h-partial-portrait.png" width="200"> | <img src="assets/shots/arrangement/overlay-h-partial-landscape.png" width="200"> |
+
+closed / landscape は、バーが左に出る向きです。
 
 | 姿勢 | `.split`（`.automatic`） | `.split.axes(.vertical)` | `.split.axes(.horizontal)` |
 | --- | --- | --- | --- |
@@ -144,22 +191,6 @@ func axes(_ axes: Axis.Set) -> SplitArrangementViewStyle
 - partial は、ペインの間に **40pt の空き**ができる。折り目がないと、ちょうど半分ずつ
 - `.split` は P が左（縦なら上）。`.overlay` が分かれるときは**逆**（S が左・上）
 - `axes` は、portrait では `.vertical`、landscape では `.horizontal` だけが効く。使えない軸は primary だけ（`.overlay` は重なったまま）
-
-closed / landscape は、バーが左の向きで測りました（バーが右なら、x がバーの分だけ反対側にずれる）。
-
-| closed / portrait | closed / landscape（バーが左） | open / portrait |
-| --- | --- | --- |
-| <img src="assets/shots/arrangement/split-closed-portrait.png" width="200"> | <img src="assets/shots/arrangement/split-closed-landscape.png" width="200"> | <img src="assets/shots/arrangement/split-open-portrait.png" width="200"> |
-
-| open / landscape | partial / portrait | partial / landscape |
-| --- | --- | --- |
-| <img src="assets/shots/arrangement/split-open-landscape.png" width="200"> | <img src="assets/shots/arrangement/split-partial-portrait.png" width="200"> | <img src="assets/shots/arrangement/split-partial-landscape.png" width="200"> |
-
-上の 6 枚は `.split`。次は partial / landscape での、スタイルの違いです。
-
-| `.split` | `.split.axes(.vertical)` | `.overlay` | `.overlay.axes(.vertical)` |
-| --- | --- | --- | --- |
-| <img src="assets/shots/arrangement/split-partial-landscape.png" width="200"> | <img src="assets/shots/arrangement/style-split-v.png" width="200"> | <img src="assets/shots/arrangement/style-overlay.png" width="200"> | <img src="assets/shots/arrangement/style-overlay-v.png" width="200"> |
 
 ### レイアウトの制御（記事本文のコード例には出てこない）
 
@@ -417,8 +448,33 @@ extension EnvironmentValues {
 UIKit は `traitCollection.verticalBarEdge` です。型は `UIVerticalBarEdge` で、`.unspecified` / `.leading` / `.trailing` の 3 値です（SwiftUI の Optional に対応します）。
 
 ### 実測: バーの辺と、項目の移り方
-
 `toolbarVerticalEdge`（SwiftUI）と `verticalBarEdge`（UIKit）の値です。
+
+**自動（既定）**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/toolbar/auto-closed-portrait.png" width="200"> | <img src="assets/shots/toolbar/auto-closed-landscape.png" width="200"> | <img src="assets/shots/toolbar/auto-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/toolbar/auto-open-landscape.png" width="200"> | <img src="assets/shots/toolbar/auto-partial-portrait.png" width="200"> | <img src="assets/shots/toolbar/auto-partial-landscape.png" width="200"> |
+
+**`.toolbarVerticalBehavior(.disabled)`**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/toolbar/disabled-closed-portrait.png" width="200"> | <img src="assets/shots/toolbar/disabled-closed-landscape.png" width="200"> | <img src="assets/shots/toolbar/disabled-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/toolbar/disabled-open-landscape.png" width="200"> | <img src="assets/shots/toolbar/disabled-partial-portrait.png" width="200"> | <img src="assets/shots/toolbar/disabled-partial-landscape.png" width="200"> |
+
+**完了を `.topBarPinnedTrailing` にしない**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/toolbar/notpinned-closed-portrait.png" width="200"> | <img src="assets/shots/toolbar/notpinned-closed-landscape.png" width="200"> | <img src="assets/shots/toolbar/notpinned-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/toolbar/notpinned-open-landscape.png" width="200"> | <img src="assets/shots/toolbar/notpinned-partial-portrait.png" width="200"> | <img src="assets/shots/toolbar/notpinned-partial-landscape.png" width="200"> |
+
+各画面の中央にある「toolbarVerticalEdge」の行が、その姿勢で読めた値です。
 
 | 姿勢 | `toolbarVerticalEdge` | `verticalBarEdge` |
 | --- | --- | --- |
@@ -452,14 +508,6 @@ UIKit は `traitCollection.verticalBarEdge` です。型は `UIVerticalBarEdge` 
 内側の portrait は、設定によらず水平です。
 
 `.topBarPinnedTrailing` と `.topBarTrailing` の違いは、見た目では確認できませんでした。
-
-| 姿勢 | 自動 | `.toolbarVerticalBehavior(.disabled)` | 完了を pinned にしない |
-| --- | --- | --- | --- |
-| closed / portrait | <img src="assets/shots/toolbar/auto-closed-portrait.png" width="200"> | <img src="assets/shots/toolbar/disabled-closed-portrait.png" width="200"> | <img src="assets/shots/toolbar/notpinned-closed-portrait.png" width="200"> |
-| open / landscape | <img src="assets/shots/toolbar/auto-open-landscape.png" width="200"> | <img src="assets/shots/toolbar/disabled-open-landscape.png" width="200"> | <img src="assets/shots/toolbar/notpinned-open-landscape.png" width="200"> |
-| open / portrait | <img src="assets/shots/toolbar/auto-open-portrait.png" width="200"> | <img src="assets/shots/toolbar/disabled-open-portrait.png" width="200"> | <img src="assets/shots/toolbar/notpinned-open-portrait.png" width="200"> |
-
-画面中央の「toolbarVerticalEdge」の行が、その姿勢で読めた値です。
 
 ### 可視性優先度（iOS 27.0）
 
@@ -577,8 +625,47 @@ UIKit の `layoutMargins` との比較です。
 `layoutMargins` = `safeAreaInsets` + `systemMinimumLayoutMargins`。SwiftUI の `contentMargins(for: .container)` は、**足した分（`systemMinimumLayoutMargins`）だけ**で、safe area は含みません。UIKit の代わりにするときは、`safeAreaInsets` を足します。
 
 ### 実測: `View.contentMargins(for:edges:alignment:)` の効果
-
 画面を撮って、画素から測った x の範囲です（pt、画面の左端が 0）。対象は、青い `Color` を全面に広げたビューです。
+
+**修飾子なし**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/margin/mode0-closed-portrait.png" width="200"> | <img src="assets/shots/margin/mode0-closed-landscape.png" width="200"> | <img src="assets/shots/margin/mode0-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/margin/mode0-open-landscape.png" width="200"> | <img src="assets/shots/margin/mode0-partial-portrait.png" width="200"> | <img src="assets/shots/margin/mode0-partial-landscape.png" width="200"> |
+
+**`.contentMargins(for: .container)`**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/margin/mode2-closed-portrait.png" width="200"> | <img src="assets/shots/margin/mode2-closed-landscape.png" width="200"> | <img src="assets/shots/margin/mode2-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/margin/mode2-open-landscape.png" width="200"> | <img src="assets/shots/margin/mode2-partial-portrait.png" width="200"> | <img src="assets/shots/margin/mode2-partial-landscape.png" width="200"> |
+
+**`.ignoresSafeArea()` のみ**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/margin/mode1-closed-portrait.png" width="200"> | <img src="assets/shots/margin/mode1-closed-landscape.png" width="200"> | <img src="assets/shots/margin/mode1-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/margin/mode1-open-landscape.png" width="200"> | <img src="assets/shots/margin/mode1-partial-portrait.png" width="200"> | <img src="assets/shots/margin/mode1-partial-landscape.png" width="200"> |
+
+**`.contentMargins(for: .container)` → `.ignoresSafeArea()`**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/margin/mode3-closed-portrait.png" width="200"> | <img src="assets/shots/margin/mode3-closed-landscape.png" width="200"> | <img src="assets/shots/margin/mode3-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/margin/mode3-open-landscape.png" width="200"> | <img src="assets/shots/margin/mode3-partial-portrait.png" width="200"> | <img src="assets/shots/margin/mode3-partial-landscape.png" width="200"> |
+
+**100pt 四方の固定サイズ + `.contentMargins(for: .container, edges: .horizontal, alignment: nil)`**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/margin/mode5-closed-portrait.png" width="200"> | <img src="assets/shots/margin/mode5-closed-landscape.png" width="200"> | <img src="assets/shots/margin/mode5-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/margin/mode5-open-landscape.png" width="200"> | <img src="assets/shots/margin/mode5-partial-portrait.png" width="200"> | <img src="assets/shots/margin/mode5-partial-landscape.png" width="200"> |
 
 | 姿勢（画面の幅） | 修飾子なし | `.contentMargins(for: .container)` | `.ignoresSafeArea()` のみ | 修飾子 → `.ignoresSafeArea()` | `.ignoresSafeArea()` → 修飾子 |
 | --- | --- | --- | --- | --- | --- |
@@ -597,18 +684,6 @@ UIKit の `layoutMargins` との比較です。
 - **`alignment` の効果は確認できませんでした**（`nil` / `.leading` / `.trailing` / `.center` で同じ。幅 1200 のビューでも同じ）
 
 **`onGeometryChange` の frame は、この修飾子や `.ignoresSafeArea()` による見た目の変化を反映しません。位置は画面で確認してください。**
-
-| 修飾子なし | `.ignoresSafeArea()` のみ | `.contentMargins(for: .container)` | 修飾子 → `.ignoresSafeArea()` |
-| --- | --- | --- | --- |
-| <img src="assets/shots/margin/mode0-open-landscape.png" width="200"> | <img src="assets/shots/margin/mode1-open-landscape.png" width="200"> | <img src="assets/shots/margin/mode2-open-landscape.png" width="200"> | <img src="assets/shots/margin/mode3-open-landscape.png" width="200"> |
-
-上の 4 枚は open / landscape です（バーは右で、右は空かない）。
-
-| closed / portrait | open / portrait |
-| --- | --- |
-| <img src="assets/shots/margin/mode2-closed-portrait.png" width="200"> | <img src="assets/shots/margin/mode2-open-portrait.png" width="200"> |
-
-`.contentMargins(for: .container)` を付けたものです。closed / portrait は左だけ、open / portrait は左右に 20pt の空きができます。
 
 ## 6. タブバーのサイドバー化（iOS 27.0）
 
@@ -637,8 +712,41 @@ iOS 18 の `.tabViewStyle(.sidebarAdaptable)` も SDK に残っています。�
 配置は、SwiftUI では `PresentationPlacement`、UIKit では `UISheetPresentationController.preferredPlacement`（iOS 27.0）で指定します。
 
 ### 実測: シートの大きさと位置
+シートの中から `GeometryReader` で読んだ大きさです（`幅 × 高さ`、括弧は safe area の top / bottom / leading / trailing）。
 
-シートの中から `GeometryReader` で読んだ大きさです（`幅 × 高さ`、括弧は safe area の top / bottom / leading / trailing）。closed / landscape は、バーが左の向きです。
+**素のシート**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/sheet/plain-closed-portrait.png" width="200"> | <img src="assets/shots/sheet/plain-closed-landscape.png" width="200"> | <img src="assets/shots/sheet/plain-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/sheet/plain-open-landscape.png" width="200"> | <img src="assets/shots/sheet/plain-partial-portrait.png" width="200"> | <img src="assets/shots/sheet/plain-partial-landscape.png" width="200"> |
+
+**`NavigationStack` 入りのシート**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/sheet/nav-closed-portrait.png" width="200"> | <img src="assets/shots/sheet/nav-closed-landscape.png" width="200"> | <img src="assets/shots/sheet/nav-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/sheet/nav-open-landscape.png" width="200"> | <img src="assets/shots/sheet/nav-partial-portrait.png" width="200"> | <img src="assets/shots/sheet/nav-partial-landscape.png" width="200"> |
+
+**`.toolbarVerticalBehavior(.disabled)` を付けたシート**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/sheet/wide-closed-portrait.png" width="200"> | <img src="assets/shots/sheet/wide-closed-landscape.png" width="200"> | <img src="assets/shots/sheet/wide-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/sheet/wide-open-landscape.png" width="200"> | <img src="assets/shots/sheet/wide-partial-portrait.png" width="200"> | <img src="assets/shots/sheet/wide-partial-landscape.png" width="200"> |
+
+**アラート**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/sheet/alert-closed-portrait.png" width="200"> | <img src="assets/shots/sheet/alert-closed-landscape.png" width="200"> | <img src="assets/shots/sheet/alert-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/sheet/alert-open-landscape.png" width="200"> | <img src="assets/shots/sheet/alert-partial-portrait.png" width="200"> | <img src="assets/shots/sheet/alert-partial-landscape.png" width="200"> |
+
+closed / landscape は、バーが左に出る向きです。
 
 | 姿勢 | 素のシート | `NavigationStack` 入り | `.toolbarVerticalBehavior(.disabled)` を付けた `NavigationStack` 入り |
 | --- | --- | --- | --- |
@@ -653,20 +761,6 @@ iOS 18 の `.tabViewStyle(.sidebarAdaptable)` も SDK に残っています。�
 - `.toolbarVerticalBehavior(.disabled)`: closed は幅 +76pt・高さ −82pt、内側の landscape は高さ −82pt、内側の portrait は変わらない（高さが縮む理由は未確認）
 - **折り目を避けて片側に寄るのは、partial / landscape だけ。** partial / portrait は、折り目をまたぐ
 - シートの中の `division` は、partial のときだけ 1 件。アラートは partial / landscape で、折り目の左側の中央に出る
-
-| closed / portrait | closed / landscape（バーが左） | open / portrait |
-| --- | --- | --- |
-| <img src="assets/shots/sheet/plain-closed-portrait.png" width="200"> | <img src="assets/shots/sheet/plain-closed-landscape.png" width="200"> | <img src="assets/shots/sheet/plain-open-portrait.png" width="200"> |
-
-| open / landscape | partial / portrait | partial / landscape |
-| --- | --- | --- |
-| <img src="assets/shots/sheet/plain-open-landscape.png" width="200"> | <img src="assets/shots/sheet/plain-partial-portrait.png" width="200"> | <img src="assets/shots/sheet/plain-partial-landscape.png" width="200"> |
-
-上の 6 枚は素のシートです。アラート:
-
-| closed / portrait | partial / landscape |
-| --- | --- |
-| <img src="assets/shots/sheet/alert-closed-portrait.png" width="200"> | <img src="assets/shots/sheet/alert-partial-landscape.png" width="200"> |
 
 ## 8. 画面の角に合わせる（iOS 26）
 
@@ -807,8 +901,39 @@ UIBackgroundExtensionView          // UIKit
 内側ディスプレイでは、centered / leading 配置なら水平バーになり、trailing 配置なら垂直バーになります。地図のように、背後のコンテンツを広く見せたい場合に使います。
 
 ### 実測: 配置ごとのシートの大きさ
-
 `.presentationPlacement(_:)` の 4 値での、`NavigationStack` 入りシートの大きさです（括弧は safe area の trailing）。
+
+**`.presentationPlacement(.automatic)`**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/sheet/place-automatic-closed-portrait.png" width="200"> | <img src="assets/shots/sheet/place-automatic-closed-landscape.png" width="200"> | <img src="assets/shots/sheet/place-automatic-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/sheet/place-automatic-open-landscape.png" width="200"> | <img src="assets/shots/sheet/place-automatic-partial-portrait.png" width="200"> | <img src="assets/shots/sheet/place-automatic-partial-landscape.png" width="200"> |
+
+**`.presentationPlacement(.leading)`**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/sheet/place-leading-closed-portrait.png" width="200"> | <img src="assets/shots/sheet/place-leading-closed-landscape.png" width="200"> | <img src="assets/shots/sheet/place-leading-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/sheet/place-leading-open-landscape.png" width="200"> | <img src="assets/shots/sheet/place-leading-partial-portrait.png" width="200"> | <img src="assets/shots/sheet/place-leading-partial-landscape.png" width="200"> |
+
+**`.presentationPlacement(.center)`**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/sheet/place-center-closed-portrait.png" width="200"> | <img src="assets/shots/sheet/place-center-closed-landscape.png" width="200"> | <img src="assets/shots/sheet/place-center-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/sheet/place-center-open-landscape.png" width="200"> | <img src="assets/shots/sheet/place-center-partial-portrait.png" width="200"> | <img src="assets/shots/sheet/place-center-partial-landscape.png" width="200"> |
+
+**`.presentationPlacement(.trailing)`**
+
+| closed / portrait | closed / landscape | open / portrait |
+| --- | --- | --- |
+| <img src="assets/shots/sheet/place-trailing-closed-portrait.png" width="200"> | <img src="assets/shots/sheet/place-trailing-closed-landscape.png" width="200"> | <img src="assets/shots/sheet/place-trailing-open-portrait.png" width="200"> |
+| **open / landscape** | **partial / portrait** | **partial / landscape** |
+| <img src="assets/shots/sheet/place-trailing-open-landscape.png" width="200"> | <img src="assets/shots/sheet/place-trailing-partial-portrait.png" width="200"> | <img src="assets/shots/sheet/place-trailing-partial-landscape.png" width="200"> |
 
 | 姿勢 | `.automatic` | `.leading` | `.center` | `.trailing` |
 | --- | --- | --- | --- | --- |
@@ -822,16 +947,6 @@ UIBackgroundExtensionView          // UIKit
 - **効くのは、内側の landscape の `.trailing` だけ。** 垂直バー（76pt）が付き、幅が縮む
 - `.leading` は左端、`.trailing` は右端、`.center` は中央。`.automatic` は `.center` と同じ
 - 外側（closed）と内側の portrait は、4 値で同じ
-
-| `.automatic` | `.leading` | `.center` | `.trailing` |
-| --- | --- | --- | --- |
-| <img src="assets/shots/sheet/place-automatic-open-landscape.png" width="200"> | <img src="assets/shots/sheet/place-leading-open-landscape.png" width="200"> | <img src="assets/shots/sheet/place-center-open-landscape.png" width="200"> | <img src="assets/shots/sheet/place-trailing-open-landscape.png" width="200"> |
-
-上の 4 枚は open / landscape です。partial / landscape の `.leading` と `.trailing`:
-
-| `.leading` | `.trailing` |
-| --- | --- |
-| <img src="assets/shots/sheet/place-leading-partial-landscape.png" width="200"> | <img src="assets/shots/sheet/place-trailing-partial-landscape.png" width="200"> |
 
 ## 15. 自作バーのための領域問い合わせ（iOS 27.1）
 
