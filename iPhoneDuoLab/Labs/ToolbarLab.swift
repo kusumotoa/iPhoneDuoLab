@@ -35,6 +35,16 @@ struct ToolbarLab: View {
         }
         .navigationTitle("ツールバー")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            // `-toolbarDisabled 1` / `-toolbarPinned 0` で起動時の切り替えを選びます。
+            let args = ProcessInfo.processInfo.arguments
+            func value(_ key: String) -> String? {
+                guard let index = args.firstIndex(of: key), index + 1 < args.count else { return nil }
+                return args[index + 1]
+            }
+            if let raw = value("-toolbarDisabled") { disableVerticalBar = raw == "1" }
+            if let raw = value("-toolbarPinned") { pinTrailingItem = raw == "1" }
+        }
         .toolbarVerticalBehavior(disableVerticalBar ? .disabled : .automatic)
         // 垂直バーが詰まったときにタブバーを優先して残します。
         .toolbarVerticalCompressionBehavior(.prefersTabBar)
