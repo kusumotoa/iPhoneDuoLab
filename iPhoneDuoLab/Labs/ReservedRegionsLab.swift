@@ -36,6 +36,13 @@ struct ReservedRegionsLab: View {
             }
         }
         .ignoresSafeArea()
+        .onAppear {
+            // `-regionsInactive 0` で、アクティブな領域だけを表示します。
+            let args = ProcessInfo.processInfo.arguments
+            if let index = args.firstIndex(of: "-regionsInactive"), index + 1 < args.count {
+                includeInactive = args[index + 1] != "0"
+            }
+        }
         .navigationTitle("予約領域")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -50,34 +57,37 @@ struct ReservedRegionsLab: View {
         includeInactive ? [.includeInactive] : []
     }
 
-    /// 予約領域そのものと、その margins を含めた範囲の両方を描きます。
-    /// margins は「この領域を避けるなら、ここまで余白を取る」という値です。
+    /// 領域を描きます。`frame` は margins を含んだ矩形（UIKit ヘッダの説明）なので、
+    /// frame 全体を「避けるべき範囲」、frame から margins を引いたものを「実体」として描きます。
+    /// 折り目は実体の幅が 0 で、左右（または上下）に margins だけが残ります。
     private func marker(for region: ReservedRegion, color: Color, label: String) -> some View {
         let frame = region.frame
-        let outer = CGRect(
-            x: frame.minX - region.margins.leading,
-            y: frame.minY - region.margins.top,
-            width: frame.width + region.margins.leading + region.margins.trailing,
-            height: frame.height + region.margins.top + region.margins.bottom
+        let core = CGRect(
+            x: frame.minX + region.margins.leading,
+            y: frame.minY + region.margins.top,
+            width: max(frame.width - region.margins.leading - region.margins.trailing, 0),
+            height: max(frame.height - region.margins.top - region.margins.bottom, 0)
         )
 
         return ZStack {
+            // frame 全体（margins を含む）
             Rectangle()
-                .strokeBorder(color.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
-                .frame(width: outer.width, height: outer.height)
-                .position(x: outer.midX, y: outer.midY)
-
-            Rectangle()
-                .fill(color.opacity(region.isActive ? 0.28 : 0.08))
-                .frame(width: max(frame.width, 2), height: max(frame.height, 2))
+                .fill(color.opacity(region.isActive ? 0.22 : 0.06))
+                .overlay(Rectangle().strokeBorder(color.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [4, 4])))
+                .frame(width: frame.width, height: frame.height)
                 .position(x: frame.midX, y: frame.midY)
-                .overlay {
-                    Text("\(label)\(region.isActive ? "" : "（非アクティブ）")")
-                        .font(.caption2)
-                        .padding(4)
-                        .background(.regularMaterial, in: .rect(cornerRadius: 4))
-                        .position(x: frame.midX, y: frame.midY)
-                }
+
+            // 実体（frame から margins を引いた矩形）。幅または高さが 0 のときは線として描く
+            Rectangle()
+                .fill(color.opacity(region.isActive ? 0.9 : 0.35))
+                .frame(width: max(core.width, 2), height: max(core.height, 2))
+                .position(x: core.midX, y: core.midY)
+
+            Text("\(label)\(region.isActive ? "" : "（非アクティブ）")")
+                .font(.caption2)
+                .padding(4)
+                .background(.regularMaterial, in: .rect(cornerRadius: 4))
+                .position(x: frame.midX, y: frame.midY)
         }
     }
 

@@ -24,16 +24,40 @@ struct ArrangementViewLab: View {
     @State private var style: Style = .automatic
     /// .split と .overlay だけが軸を指定できます。
     @State private var constrainAxis = false
+    /// 検証用: 操作部を隠して、ペインだけを画面に出します。
+    @State private var clean = false
+    /// 検証用: 起動引数 -arrAxis で軸を指定したとき、その値。トグルより優先します。
+    @State private var axisOverride: Axis.Set?
+
+    private var axes: Axis.Set? { axisOverride ?? (constrainAxis ? .vertical : nil) }
 
     var body: some View {
         VStack(spacing: 0) {
-            controls
+            if !clean { controls }
 
             arrangement
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .navigationTitle("ArrangementView")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear(perform: applyLaunchArguments)
+    }
+
+    /// `-arrStyle automatic|split|overlay`、`-arrAxis vertical|horizontal`、`-arrClean 1` で起動時の状態を選びます。
+    /// 内側ディスプレイにはタッチが届かないため、操作せずに各パターンを出すための入口です。
+    private func applyLaunchArguments() {
+        let args = ProcessInfo.processInfo.arguments
+        func value(_ key: String) -> String? {
+            guard let index = args.firstIndex(of: key), index + 1 < args.count else { return nil }
+            return args[index + 1]
+        }
+        if let raw = value("-arrStyle"), let parsed = Style(rawValue: raw) { style = parsed }
+        switch value("-arrAxis") {
+        case "vertical": axisOverride = .vertical
+        case "horizontal": axisOverride = .horizontal
+        default: axisOverride = nil
+        }
+        clean = value("-arrClean") == "1"
     }
 
     @ViewBuilder
@@ -48,9 +72,9 @@ struct ArrangementViewLab: View {
         case .automatic:
             view.arrangementViewStyle(.automatic)
         case .split:
-            view.arrangementViewStyle(constrainAxis ? .split.axes(.vertical) : .split)
+            if let axes { view.arrangementViewStyle(.split.axes(axes)) } else { view.arrangementViewStyle(.split) }
         case .overlay:
-            view.arrangementViewStyle(constrainAxis ? .overlay.axes(.vertical) : .overlay)
+            if let axes { view.arrangementViewStyle(.overlay.axes(axes)) } else { view.arrangementViewStyle(.overlay) }
         }
     }
 

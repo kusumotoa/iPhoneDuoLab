@@ -9,6 +9,8 @@
 - [ ] **iOS 27.1 SDK でビルドする** — 全画面表示の前提条件です。Xcode 26 / 27.0 では黒帯が残ります
 - [ ] Deployment target を確認する。新 API の大半は iOS 27.1 から
 - [ ] **Xcode 27.1 の Device Hub** で iPhone Duo シミュレータを選び、開閉・回転・折り曲げを確認する
+- [ ] 回転ボタンは、上下が逆の向きも通る。**測定・撮影の前に、向きを値で確かめる**（`verticalBarEdge`、内側カメラの領域の位置。`references/simulator.md`）
+- [ ] 別の Xcode で作業しているときは、`xcode-select` を変えず、`DEVELOPER_DIR` で 27.1 を指定する
 - [ ] 姿勢そのものだけでなく、**姿勢から姿勢へ移る途中の表示**も確認する
 - [ ] Xcode 27.1 の **App Resizability スキル**を試す（旧アプリ近代化スキルの改称版で、SwiftUI と iPhone Duo に対応）
 - [ ] `UIRequiresFullScreen` を外す（当面は尊重されますが非推奨扱いで、開閉によるリサイズは発生します）
@@ -36,6 +38,7 @@
 - [ ] migration: 外側のスクロールビューだけでなく、**その中の入れ子のコンテナ**も端を `view` に貼り直していないか確認する
 - [ ] migration: セル幅や高さを `UIScreen.main` / `view.bounds` から計算していないか確認する。コンテナの**実幅**から求める
 - [ ] migration: 自前でフレームを計算するサードパーティの UI ライブラリ（サイドメニューなど）が safe area を見ているか確認する
+- [ ] WebView を使う画面は、**safe area の内側に置く**か、**広げて `viewport-fit=cover` と `env(safe-area-inset-*)` をセットで使う**。広げただけでは `env()` は 0 のまま。`env()` の左右は非対称（`references/webview.md`）
 
 ## ナビゲーションとバー
 
@@ -64,8 +67,15 @@
 - [ ] グリッド状のレイアウトは**列数を偶数に**する
 - [ ] **連続スクロールコンテンツを領域間で移動させていないか**確認する
 - [ ] **姿勢間の遷移を滑らかにアニメーションできるか**確認する
+- [ ] ヒンジの状態は `status` で判断し、角度から自分で計算しない。開くときと閉じるときで、`status` が切り替わる角度が違う
+- [ ] UIKit の `UIHinge.angle` は radians。SwiftUI の `Angle` と単位を混同しない
+- [ ] `onHingeChange` は、同じ値の通知が続けて届くことがある（partial に止まったあとに 9 回）。値が前回と同じなら処理を省く
+- [ ] `ArrangementView` の `.overlay` は、partially folded のときだけ分かれ、**secondary が左（縦なら上）、primary が右（縦なら下）** に来る。`.split` とは逆
+- [ ] シートは、partially folded / **portrait では折り目をまたぐ**。折り目の左側に収まるのは landscape だけ
 - [ ] `reservedRegions(kind: .division)` で折り目を避ける（自前のオーバーレイのみ。スクロールコンテンツは避ける必要なし）
 - [ ] `reservedRegions(kind: .occlusion)` でカメラ領域を避ける
+- [ ] 内側カメラの領域は、非アクティブでも `.includeInactive` で取れる。**位置は端末の向きで変わる**ので、固定の座標で避けない
+- [ ] 内側カメラを使う app と、使わない app が並ぶ場合の挙動は、シミュレータでは確認できない。実機で確かめる（`references/camera.md`）
 - [ ] `UIView._boundaryLayoutRegions` を使っていたら `reservedRegions(kind:)` に移行する
 
 ## 複数ディスプレイとシーン
