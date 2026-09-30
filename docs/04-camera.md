@@ -182,40 +182,32 @@ iOS 27.1 のシミュレータでは、カメラを使うアプリを起動で�
 
 ## 内側カメラを使わない app への影響
 
-内側カメラを使わない app なら問題ない、と考えたくなります。**「内側カメラを使う app と、使わない app が同時に立ち上がっているとき、使わない側にも影響があるか」は、シミュレータでは確認できませんでした。** 確認できたことと、できていないことを分けて書きます。
+**内側カメラを使う app と使わない app が並んだとき、使わない側の領域がアクティブになるかは、シミュレータでは確認できませんでした。**
 
 ### 確認できたこと
 
-- カメラを使わない app でも、内側カメラの領域は取れます。`reservedRegions(kind: .occlusion, options: [.includeInactive])` を読むと、open と partial では、内側カメラの領域が**非アクティブ**として返ります。closed では返りません（外側のカメラの領域が、アクティブで返ります）
-- 領域の位置と大きさは、端末の向きで変わります（[02-api-reference.md](02-api-reference.md) の「端末の向きによる違い」）。
+- カメラを使わない app でも、内側カメラの領域は取れます。`reservedRegions(kind: .occlusion, options: [.includeInactive])` で、open と partial では**非アクティブ**として返ります（closed では返りません）
+- 領域の位置は、端末の向きで変わります（[02-api-reference.md](02-api-reference.md) の「端末の向きによる違い」）
 
 | 姿勢 | 内側カメラの領域（SwiftUI の座標） |
 | --- | --- |
-| open / portrait | 非アクティブ (21, 133.7) 37×58 |
-| open / landscape | 非アクティブ (677.3, −61) 58×37 |
-| partial / portrait | 非アクティブ (21, 133.7) 37×58 |
-| partial / landscape | 非アクティブ (677.3, −61) 58×37 |
+| open / portrait、partial / portrait | 非アクティブ (21, 133.7) 37×58 |
+| open / landscape、partial / landscape | 非アクティブ (677.3, −61) 58×37 |
 
 ### 確認できなかったこと
 
-- **領域がアクティブになる条件。** シミュレータにはカメラが 1 台もなく（上の「シミュレータでの確認範囲」）、内側カメラが動作している状態を作れません
-- **アクティブな状態が、app ごとなのか、システム全体なのか。** SDK のヘッダには、`isActive` について "Whether the region is currently active." としか書かれていません
-- **カメラを使う app と、使わない app が並んだときの挙動。** 上の 2 つが分からないので、判断できません
+- 領域がアクティブになる条件（シミュレータにはカメラが 1 台もない）
+- アクティブな状態が、app ごとか、端末全体か（ヘッダには "Whether the region is currently active." だけ）
+- カメラを使う app と、使わない app が並んだときの挙動
 
-つまり、カメラを使わない app が、他の app のカメラ使用の影響を受けるかは、実機で確かめるまで分かりません。
+### 実機で確認する
 
-### 実機で確認する手順
-
-**すぐ確かめられるように、専用の Lab と手順書を用意しました。** [08-camera-split-check.md](08-camera-split-check.md) を見てください。
-
-- 同じ app を、別々のバンドル ID で 2 つ入れます（`tools/measure/install-two-apps.sh`）。「Duo カメラ側」と「Duo 観察側」です
-- カメラ側で内側カメラを動かし、Split View で並べた観察側の、内側カメラの領域の `isActive` が変わるかを、時刻つきで記録します
-- 「観察側が変わるか」が、いちばん知りたい結果です。変わらなければ、カメラを使わない app は、内側カメラの領域を気にしなくてよいことになります
+専用の Lab と手順書を用意しました。[08-camera-split-check.md](08-camera-split-check.md) を見てください。同じ app を別のバンドル ID で 2 つ入れ（`tools/measure/install-two-apps.sh`）、`isActive` が変わった時刻を記録します。
 
 ### 今の時点での安全な書き方
 
 - 内側カメラの領域を、固定の座標で避けない。`reservedRegions` を読んで、毎回位置を取る
-- `isActive` の変化に追従する（`onGeometryChange` や、`UIView` のレイアウトの更新）。ただし、`isActive` を使った UI の切り替えは、実機で確かめるまで最小限にとどめる
+- `isActive` の変化に追従する。ただし、`isActive` を使った UI の切り替えは、実機で確かめるまで最小限にとどめる
 
 ## チェックリスト
 
