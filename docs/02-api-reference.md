@@ -128,7 +128,7 @@ func axes(_ axes: Axis.Set) -> SplitArrangementViewStyle
 ```
 
 - `.split`: primary と secondary を左右（または上下）に分けます。分け方は姿勢で決まります。軸を制限でき、その軸で分けられない姿勢では、分けずに primary だけを出します（下の実測）
-- `.overlay`: 通常は 2 つを重ねます。部分的に折った姿勢だけは、折り目を挟んで分けます。secondary を折りたたむこともできます（この点は実測していません）
+- `.overlay`: 通常は 2 つを重ねます。部分的に折った姿勢だけは、折り目を挟んで分けます。secondary を折りたたむこともできます（この Lab では再現できていません。[実測: overlay の重なり順、zIndex、edge](#実測-overlay-の重なり順zindexedge)）
 
 移行の目安は、`HStack` / `VStack` なら `.split`、`ZStack` なら `.overlay` です。前景と背景の関係が明確なら overlay を選びます。主内容と詳細のどちらも隠したくないなら split を選びます。
 
@@ -232,6 +232,29 @@ extension EnvironmentValues {
 ```
 
 UIKit 側では `state(for:)` が返す `UIArrangementViewState` の `zIndex` が対応します。
+
+### 実測: overlay の重なり順、zIndex、edge
+
+Apple の Tech Talk「Strike a pose」（13:21〜14:39）は、overlay を「前景と背景がはっきりした関係」のときに使うものとし、`overlayArrangementZIndex` が 0 より大きいときに縮小表示にする例を示しています。**この Lab では、その挙動を再現できていません。**
+
+| 確かめたこと | 結果 |
+| --- | --- |
+| 折らない姿勢（closed / open）で、どちらが手前か | **primary が手前**、secondary は後ろに隠れる（不透明にして確認） |
+| `overlayArrangementZIndex` の値 | **primary も secondary も、全姿勢で 0** |
+| `overlayArrangementEdge` を secondary に付ける | closed / open は、どの辺でも変化なし。**partial だけ変わる**（下） |
+| primary や `ArrangementView` 全体に付ける | open / landscape では変化なし（partial は未確認） |
+
+**partial で `overlayArrangementEdge` を付けた結果**（secondary に付けて、`.overlay`）:
+
+| 辺 | partial / portrait | partial / landscape |
+| --- | --- | --- |
+| なし | <img src="assets/shots/arrangement/edge-partial-portrait-none.png" width="200"> | <img src="assets/shots/arrangement/edge-partial-landscape-none.png" width="200"> |
+| `.top` / `.leading` | <img src="assets/shots/arrangement/edge-partial-portrait-top.png" width="200">（変化なし） | <img src="assets/shots/arrangement/edge-partial-landscape-leading.png" width="200">（変化なし） |
+| `.bottom` / `.trailing` | <img src="assets/shots/arrangement/edge-partial-portrait-bottom.png" width="200"> | <img src="assets/shots/arrangement/edge-partial-landscape-trailing.png" width="200"> |
+
+- primary 側の辺（portrait は `.bottom`、landscape は `.trailing`）を指定すると、**secondary が primary と同じ範囲（669 × 421 / 371 × 553）に重なり**、反対側の半分は空になる
+- 反対側の辺を指定しても、何も変わらない
+- Apple の例のような「secondary を縮小して手前に置く」表示は、この Lab では出ていません。`zIndex` を読む側の作りや、指定する場所が違う可能性がありますが、未確認です
 
 ### 入れ子の制約
 

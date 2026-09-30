@@ -157,7 +157,7 @@ AXStaticText desc=T 82  B 34
 | `APIValuesLab` | `apiValues` | SwiftUI の値（safe area、`contentMargins`、予約領域、ヒンジ） | `-hingeNoState 1`（通知で `@State` を更新しない） |
 | `UIKitValuesLab` | `uikitValues` | UIKit の値（`layoutMargins`、`LayoutRegion`、予約領域、`UIHingeInteraction`） | |
 | `MarginProbeLab` | `marginProbe` | `View.contentMargins` の効果 | `-probeMode 0〜12` |
-| `ArrangementViewLab` | `arrangement` | ペインの位置 | `-arrStyle automatic|split|overlay`、`-arrAxis vertical|horizontal`、`-arrClean 1` |
+| `ArrangementViewLab` | `arrangement` | ペインの位置 | `-arrStyle automatic|split|overlay`、`-arrAxis vertical|horizontal`、`-arrClean 1`、`-arrOpaque 1`、`-arrEdge top|bottom|leading|trailing`、`-arrEdgeOn secondary|primary|container` |
 | `ToolbarLab` | `toolbar` | 項目の移り方 | `-toolbarDisabled 0|1`、`-toolbarPinned 0|1` |
 | `SheetLab` | `sheet` | シートの大きさと位置 | `-sheet plain|nav|wide|alert|place-automatic|place-leading|place-center|place-trailing` |
 | `ReservedRegionsLab` | `reservedRegions` | 予約領域の可視化 | `-regionsInactive 0|1` |
