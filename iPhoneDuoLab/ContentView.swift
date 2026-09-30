@@ -10,7 +10,7 @@ import SwiftUI
 /// ナビゲーションバーが自動的に側面へ移動します。
 struct ContentView: View {
     enum Lab: String, Hashable, CaseIterable {
-        case pose, reservedRegions, safeArea, arrangement, toolbar, sheet, apiValues, marginProbe, uikitValues, cameraProbe, webView
+        case pose, reservedRegions, safeArea, arrangement, toolbar, sheet, apiValues, marginProbe, uikitValues, cameraProbe, cameraSplit, webView
     }
 
     @State private var path: [Lab] = []
@@ -23,6 +23,7 @@ struct ContentView: View {
                     NavigationLink("UIKit の実測値", value: Lab.uikitValues)
                     NavigationLink("余白の実験", value: Lab.marginProbe)
                     NavigationLink("カメラの実験", value: Lab.cameraProbe)
+                    NavigationLink("カメラの並走テスト（実機用）", value: Lab.cameraSplit)
                     NavigationLink("WebView の safe area", value: Lab.webView)
                     NavigationLink("ポーズの実測値", value: Lab.pose)
                     NavigationLink("予約領域の可視化", value: Lab.reservedRegions)
@@ -49,6 +50,7 @@ struct ContentView: View {
                 case .marginProbe: MarginProbeLab()
                 case .uikitValues: UIKitValuesLab()
                 case .cameraProbe: CameraProbeLab()
+                case .cameraSplit: CameraSplitLab()
                 case .webView: WebViewLab()
                 }
             }
@@ -63,7 +65,7 @@ struct ContentView: View {
         let arguments = ProcessInfo.processInfo.arguments
         guard let index = arguments.firstIndex(of: "-lab"), index + 1 < arguments.count,
               let lab = Lab(rawValue: arguments[index + 1]), path.isEmpty else { return }
-        if lab == .apiValues || lab == .marginProbe || lab == .uikitValues || lab == .cameraProbe || lab == .webView || lab == .sheet { ValueRecorder.shared.reset() }
+        if lab == .apiValues || lab == .marginProbe || lab == .uikitValues || lab == .cameraProbe || lab == .webView || lab == .sheet || lab == .cameraSplit { ValueRecorder.shared.reset() }
         path = [lab]
     }
 }
